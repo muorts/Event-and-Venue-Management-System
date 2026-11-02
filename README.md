@@ -21,10 +21,12 @@ versionadas e não foram incorporados a esta reorganização.
 
 ## Estado desta etapa
 
-Reorganização inicial na branch `chore/reorganizacao-inicial`, sem implementação.
-O E/R editável e o relacional em PDF foram preservados. `sql/01_tabelas.sql`,
-`prototipo/main.py` e `entrega/Instrucoes.txt` são marcadores vazios preexistentes,
-renomeados quando necessário: não há banco ou aplicação executável.
+Reorganização aprovada e integrada. O DDL de Victor em `sql/01_tabelas.sql` cria
+as 16 tabelas oficiais; as seis decisões estão aprovadas.
+Veja o [contrato das tabelas e testes](docs/ddl.md) para executar o DDL, integrar
+os próximos componentes e consultar os resultados/limitações da validação.
+`prototipo/main.py` e `entrega/Instrucoes.txt` continuam vazios; triggers, DML,
+consultas e protótipo serão implementados pelos respectivos responsáveis.
 
 ## Organização
 
@@ -39,7 +41,8 @@ entrega/          somente artefatos finais derivados das fontes
 ```
 
 Estrutura-alvo dos scripts: `sql/01_tabelas.sql`, `sql/02_triggers.sql`,
-`sql/03_dml.sql`, `sql/04_consultas.sql`. Apenas o primeiro existe, sem SQL.
+`sql/03_dml.sql`, `sql/04_consultas.sql`. O primeiro está implementado; os demais
+serão entregues pelos responsáveis.
 Não manter scripts paralelos por entidade.
 
 ## Tecnologias e requisitos obrigatórios
@@ -55,9 +58,9 @@ O modelo deve vir da configuração; o grupo ainda precisa confirmar o modelo ut
 
 - `docs/modelagem/ER.pdf` e exportação XML de entrega do draw.io.
 - `docs/modelagem/Relacional.mmd`: recuperar o fonte Mermaid com João Marcelo.
-- Implementar `sql/01_tabelas.sql` e criar os scripts `02_triggers.sql`, `03_dml.sql` e `04_consultas.sql`.
+- Criar os scripts `02_triggers.sql`, `03_dml.sql` e `04_consultas.sql`.
 - Implementar `prototipo/main.py`; criar `prototipo/requirements.txt` e configuração local `prototipo/config.json`.
-- Confirmar e registrar as respostas Q1–Q6; o arquivo de decisões original estava vazio.
+- Completar as regras entre linhas/tabelas e a participação mínima dos pais conforme [ddl.md](docs/ddl.md).
 - Completar instruções e gerar os artefatos finais de `entrega/` após a implementação.
 
 ## Preparação da entrega futura
