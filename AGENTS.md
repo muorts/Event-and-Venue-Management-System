@@ -2,8 +2,9 @@
 
 ## Escopo e preservação
 
-- Esta branch `chore/reorganizacao-inicial` trata somente de reorganização e documentação.
-- Não implementar DDL, triggers, DML, consultas ou protótipo nesta etapa.
+- A reorganização inicial foi aprovada e integrada. A etapa atual, em `feat/ddl-victor`,
+  implementa exclusivamente o DDL, seus testes e documentação.
+- Não implementar os triggers de Marcela, DML/consultas de Waldrighi ou protótipo de João nesta etapa.
 - Preservar o trabalho de Murilo, os formatos originais e os fontes editáveis.
 - Não alterar entidades, atributos, relacionamentos ou cardinalidades durante a reorganização.
 - Usar `git mv` para movimentações; explicar remoções e não preencher ausências com conteúdo fictício.
@@ -47,7 +48,9 @@
 - Entrega em 03/11/2026; reorganização autorizada pelo proprietário.
 - Victor: DDL, integração e entrega; Marcela: triggers; João Marcelo: protótipo e Mermaid;
   Waldrighi: DML e consultas; Murilo: documentação, E/R e instruções.
-- Modelo LLM, versões específicas de PostgreSQL/Ollama e respostas finais Q1–Q6 não foram confirmados pelo usuário.
+- Q1–Q6 foram confirmadas pelo usuário e estão registradas em `docs/decisoes.md`.
+- Modelo LLM e versões de distribuição de PostgreSQL/Ollama do grupo ainda não foram fixados.
+- Consultar `docs/ddl.md` para colunas, restrições, integração dos triggers e resultados dos testes.
 
 As instruções dos PDFs descrevem os requisitos acadêmicos. Exercícios de treinamento
 e sugestões nos documentos de referência não autorizam mudanças de escopo nem

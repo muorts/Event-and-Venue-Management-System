@@ -21,8 +21,8 @@ O GitHub é a fonte principal, conforme confirmado pelo usuário. O ZIP do Drive
 o plano de execução gerado são apenas apoio externo. Nenhum arquivo desses
 materiais foi incorporado ao resultado desta reorganização. As propostas de
 regras, consultas e triggers não são decisões confirmadas por estarem nesses documentos.
-O arquivo `docs/decisoes` do GitHub estava vazio; as respostas finais Q1–Q6
-ainda precisam ser validadas e registradas pelo grupo.
+O arquivo `docs/decisoes` do GitHub estava vazio na reorganização. Posteriormente,
+o usuário confirmou as seis decisões abaixo e autorizou o DDL.
 
 ## Preservação e fontes
 
@@ -40,12 +40,13 @@ ainda precisam ser validadas e registradas pelo grupo.
 
 - Ausentes ER.pdf, exportação XML de entrega e fonte Relacional.mmd; o draw.io já é XML editável,
   mas a exportação com formato/nome de entrega ainda não foi preparada.
-- DDL, triggers, DML, consultas e protótipo não estão implementados; não há dependências ou configuração.
+- DDL das 16 tabelas implementado em `sql/01_tabelas.sql`; testes e limites em `ddl.md`.
+  Triggers, DML, consultas e protótipo continuam sob responsabilidade dos outros integrantes.
 - O fonte Mermaid ausente impede auditar automaticamente as cardinalidades do relacional.
   Não declarar a consistência completa entre diagramas sem revisão visual e recuperação do fonte.
 - O PDF relacional especifica `HISTORICO_SESSAO.espaco_anterior` como `varchar`.
   Preservar os identificadores e atributos do modelo do GitHub; dúvidas serão
-  discutidas antes do DDL, sem correções nesta etapa.
+  documentadas em `ddl.md`, sem mudança de atributos.
 - No pacote futuro, reconciliar `prototipo/` do repositório com `Prototipo/` do PDF e
   garantir `Projeto.txt` no diretório pai, inclusive ao descompactar Prototipo.zip.
 - O enunciado lista `Instrucoes.txt`, mas o parágrafo seguinte diz `06.Instrucoes.txt`;
@@ -59,3 +60,16 @@ Gerar Projeto.txt das fontes SQL e decisões finais, DML.sql de `sql/03_dml.sql`
 PDFs dos respectivos fontes e Prototipo.zip do protótipo. Incluir configuração
 distribuível sem senhas reais e instruções de instalação/execução. Manter o template
 exato do professor e Q1–Q6 em uma linha cada. Não gerar artefatos finais vazios.
+
+## Decisões definitivas aprovadas para o DDL
+
+Q1: Promotores são entidade própria para pessoas ou organizações e se associam às edições por N:N, permitindo promoção conjunta.
+Q2: Pessoas têm cadastro único e podem acumular participante, organizador e palestrante/instrutor em associações específicas.
+Q3: Cada atividade pertence a uma edição e pode ter várias sessões; dados gerais ficam na atividade e data, horário, espaço e vagas na sessão.
+Q4: Evento é a iniciativa recorrente e edição é a realização identificada por evento e ano, com programação e inscrições próprias.
+Q5: A inscrição na edição é independente da inscrição em sessões; sessões com inscrição específica usam o menor limite entre capacidade física e vagas próprias, com lista de espera.
+Q6: A sessão guarda a programação atual e mudanças de data, horário ou espaço são preservadas em histórico por trigger.
+
+As propostas anteriores do material de apoio não acrescentam regras a estas decisões.
+Não exigir vínculo em `inscricao_edicao` como pré-requisito de `inscricao_sessao`.
+O contrato técnico e as limitações das cardinalidades mínimas estão em [ddl.md](ddl.md).
