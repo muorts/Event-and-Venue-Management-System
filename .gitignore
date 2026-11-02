@@ -1,0 +1,9 @@
+# Configuração local: nunca versionar credenciais reais.
+/prototipo/config.json
+**/.env
+**/.env.*
+!**/.env.example
+**/.venv/
+**/venv/
+**/__pycache__/
+*.py[cod]
