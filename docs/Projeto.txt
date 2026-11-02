@@ -1,0 +1,37 @@
+============================================================
+SCC0640 - PROJETO DE BASES DE DADOS
+============================================================
+GRUPO: 
+INTEGRANTES: Murilo Ortega Pereira - 16893917, Victor Kayky Zaneti Antunes 15491132, Joao Marcelo Abreu dos Santos 16876021
+MODELO UTILIZADO NO OLLAMA: qwen3:8b
+============================================================
+1. DESCRICAO FINAL DO SISTEMA
+============================================================
+[Descreva brevemente o sistema efetivamente implementado.]
+============================================================
+2. DECISOES DE PROJETO
+============================================================
+Q1: [resposta]
+Q2: [resposta]
+Q3: [resposta]
+Q4: [resposta]
+Q5: [resposta]
+Q6: [resposta]
+Cada resposta Q1-Q6 deverá ocupar uma única linha.
+============================================================
+3. DDL COMPLETO
+============================================================
+[Inserir aqui todo o DDL necessário para criação do banco.]
+============================================================
+4. CONSULTAS
+============================================================
+CONSULTA 1
+OBJETIVO: [uma frase]
+SQL: [consulta]
+CONSULTA 2
+OBJETIVO: [uma frase]
+SQL: [consulta]
+[...]
+============================================================
+FIM DO ARQUIVO
+============================================================
