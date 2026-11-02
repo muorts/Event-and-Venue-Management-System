@@ -390,3 +390,11 @@ em base nativa vazia antes da integração final.
 Referência técnica: [restrições do PostgreSQL](https://www.postgresql.org/docs/18/ddl-constraints.html)
 explica o limite de CHECKs sobre outras linhas/tabelas;
 [PGlite](https://pglite.dev/docs/about) descreve o motor WASM utilizado nos testes.
+
+## Validacao nativa complementar
+
+Executada no Windows fora do ambiente restrito: `PostgreSQL 18.6 on x86_64-windows, compiled by msvc-19.44.35229, 64-bit`.
+
+DDL completo em base vazia e **125 testes aprovados**, com todas as fixtures revertidas.
+Instancia temporaria autenticada por SCRAM, em porta propria, encerrada apos o teste.
+SHA-256 do DDL: `d35569baabd7c4fcb916447a709a4962f7d84ca199017754a1b968eb2337b49c`.
