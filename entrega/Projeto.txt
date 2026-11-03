@@ -1,8 +1,8 @@
 ============================================================
 SCC0640 - PROJETO DE BASES DE DADOS
 ============================================================
-GRUPO: 
-INTEGRANTES: Murilo Ortega Pereira - 16893917, Victor Kayky Zaneti Antunes 15491132, Joao Marcelo Abreu dos Santos 16876021
+GRUPO: Semana da Computação
+INTEGRANTES: Murilo Ortega Pereira - 16893917, Victor Kayky Zaneti Antunes 15491132, Joao Marcelo Abreu dos Santos 16876021, 
 MODELO UTILIZADO NO OLLAMA: qwen3:8b
 ============================================================
 1. DESCRICAO FINAL DO SISTEMA
@@ -26,12 +26,149 @@ Cada resposta Q1-Q6 deverá ocupar uma única linha.
 4. CONSULTAS
 ============================================================
 CONSULTA 1
-OBJETIVO: [uma frase]
-SQL: [consulta]
+OBJETIVO: Listar a programacao de cada edicao com atividade, ministrantes, espaco, horario e quantidade de mudancas de programacao.
+SQL: 
+SELECT ev.nome AS evento,
+    ed.ano,
+    s.data,
+    s.hora_inicio,
+    s.hora_fim,
+    a.titulo AS atividade,
+    a.tipo,
+    (SELECT string_agg(p.nome, ', ' ORDER BY p.nome)
+        FROM atividade_pessoa ap
+        JOIN pessoa p ON p.id_pessoa = ap.id_pessoa
+        WHERE ap.id_atividade = a.id_atividade) AS ministrantes,
+    e.nome AS espaco,
+    s.status AS status_sessao,
+    (SELECT COUNT(*)
+        FROM historico_sessao h
+        WHERE h.id_sessao = s.id_sessao) AS alteracoes
+FROM sessao s
+JOIN atividade a ON a.id_atividade = s.id_atividade
+JOIN edicao ed ON ed.id_edicao = a.id_edicao
+JOIN evento ev ON ev.id_evento = ed.id_evento
+JOIN espaco e ON e.id_espaco = s.id_espaco
+ORDER BY ed.data_inicio, ev.nome, s.data, s.hora_inicio, s.id_sessao;
+
 CONSULTA 2
-OBJETIVO: [uma frase]
-SQL: [consulta]
-[...]
+OBJETIVO: Calcular, por sessao, as vagas efetivas, os inscritos confirmados, a fila de espera e a taxa de ocupacao.
+SQL: 
+WITH vagas AS (
+    SELECT s.id_sessao, e.capacidade AS vagas_efetivas
+      FROM sessao s
+      JOIN espaco e ON e.id_espaco = s.id_espaco
+     WHERE s.vagas_limite IS NULL OR s.vagas_limite >= e.capacidade
+    UNION
+    SELECT s.id_sessao, s.vagas_limite AS vagas_efetivas
+      FROM sessao s
+      JOIN espaco e ON e.id_espaco = s.id_espaco
+     WHERE s.vagas_limite < e.capacidade
+)
+SELECT ev.nome AS evento,
+       ed.ano,
+       a.titulo AS atividade,
+       s.id_sessao,
+       s.data,
+       e.nome AS espaco,
+       e.capacidade,
+       v.vagas_efetivas,
+       COUNT(i.id_pessoa) FILTER (WHERE i.status = 'CONFIRMADA') AS confirmados,
+       COUNT(i.id_pessoa) FILTER (WHERE i.status = 'LISTA_ESPERA') AS em_espera,
+       ROUND(100.0 * COUNT(i.id_pessoa) FILTER (WHERE i.status = 'CONFIRMADA') / v.vagas_efetivas, 1) AS ocupacao_pct,
+       s.status AS status_sessao
+  FROM sessao s
+  JOIN vagas v ON v.id_sessao = s.id_sessao
+  JOIN espaco e ON e.id_espaco = s.id_espaco
+  JOIN atividade a ON a.id_atividade = s.id_atividade
+  JOIN edicao ed ON ed.id_edicao = a.id_edicao
+  JOIN evento ev ON ev.id_evento = ed.id_evento
+  LEFT JOIN inscricao_sessao i ON i.id_sessao = s.id_sessao
+ GROUP BY ev.nome, ed.ano, ed.data_inicio, a.titulo, s.id_sessao, s.data, s.hora_inicio,
+          e.nome, e.capacidade, v.vagas_efetivas, s.status
+ ORDER BY ed.data_inicio, ev.nome, s.data, s.hora_inicio, s.id_sessao;
+
+CONSULTA 3
+OBJETIVO: Identificar, em cada edicao, os espacos que nao foram usados por nenhuma sessao nao cancelada.
+SQL: 
+SELECT ev.nome AS evento,
+       ed.ano,
+       e.nome AS espaco_sem_uso,
+       e.tipo,
+       e.capacidade,
+       e.predio
+FROM edicao ed, evento ev, espaco e
+WHERE ev.id_evento = ed.id_evento
+AND NOT EXISTS (
+    SELECT NULL
+        FROM sessao s
+        JOIN atividade a ON a.id_atividade = s.id_atividade
+    WHERE a.id_edicao = ed.id_edicao
+        AND s.id_espaco = e.id_espaco
+        AND s.status <> 'CANCELADA'
+   )
+ORDER BY ed.data_inicio, ev.nome, e.id_espaco;
+
+
+CONSULTA 4
+OBJETIVO: Listar as pessoas com inscricao geral confirmada que tambem ministram atividades na mesma edicao, com o numero de atividades e o papel na equipe (NULL se nao fizer parte da equipe).
+SQL:
+SELECT ev.nome AS evento,
+       ed.ano,
+       p.nome AS pessoa,
+       COUNT(DISTINCT a.id_atividade) AS atividades,
+       ee.papel AS papel_na_equipe
+  FROM edicao ed
+  JOIN evento ev ON ev.id_evento = ed.id_evento
+  JOIN atividade a ON a.id_edicao = ed.id_edicao
+  JOIN atividade_pessoa ap ON ap.id_atividade = a.id_atividade
+  JOIN pessoa p ON p.id_pessoa = ap.id_pessoa
+  LEFT JOIN equipe_edicao ee ON ee.id_pessoa = p.id_pessoa AND ee.id_edicao = ed.id_edicao
+ WHERE EXISTS (
+       SELECT NULL
+         FROM inscricao_edicao ie
+        WHERE ie.id_pessoa = p.id_pessoa
+          AND ie.id_edicao = ed.id_edicao
+          AND ie.status = 'CONFIRMADA'
+   )
+GROUP BY ev.nome, ed.id_edicao, ed.ano, ed.data_inicio, p.id_pessoa, p.nome, ee.papel
+ORDER BY ed.data_inicio, ev.nome, p.nome;
+
+
+CONSULTA 5
+OBJETIVO: Ranquear, por edicao, os ministrantes com mais sessoes nao canceladas, mostrando as duas primeiras posicoes e preservando empates.
+SQL: 
+WITH sessoes_por_ministrante AS (
+    SELECT a.id_edicao,
+           ap.id_pessoa,
+           COUNT(DISTINCT s.id_sessao) AS qtd_sessoes
+      FROM atividade_pessoa ap
+      JOIN atividade a ON a.id_atividade = ap.id_atividade
+      JOIN sessao s ON s.id_atividade = a.id_atividade
+     WHERE s.status <> 'CANCELADA'
+     GROUP BY a.id_edicao, ap.id_pessoa
+), ranqueados AS (
+    SELECT m.id_edicao,
+           m.id_pessoa,
+           m.qtd_sessoes,
+           RANK() OVER (
+               PARTITION BY m.id_edicao
+               ORDER BY m.qtd_sessoes DESC
+           ) AS posicao
+      FROM sessoes_por_ministrante m
+)
+SELECT ev.nome AS evento,
+       ed.ano,
+       r.posicao,
+       p.nome AS ministrante,
+       r.qtd_sessoes
+  FROM ranqueados r
+  JOIN edicao ed ON ed.id_edicao = r.id_edicao
+  JOIN evento ev ON ev.id_evento = ed.id_evento
+  JOIN pessoa p ON p.id_pessoa = r.id_pessoa
+ WHERE r.posicao <= 2
+ ORDER BY ed.data_inicio, ev.nome, r.posicao, p.nome;
+
 ============================================================
 FIM DO ARQUIVO
 ============================================================
