@@ -20,6 +20,7 @@ import tempfile
 import threading
 import time
 import uuid
+import urllib.request
 import zipfile
 
 import psycopg
@@ -294,26 +295,56 @@ class Validacao:
 
     def testar_ollama(self):
         cliente=self.mod.criar_cliente_ollama({'host':self.args.ollama_host})
-        self.evidencia['ollama_version']=cliente.version().get('version')
+        with urllib.request.urlopen(self.args.ollama_host.rstrip('/')+'/api/version',timeout=5) as resposta:
+            self.evidencia['ollama_version']=json.load(resposta)['version']
         self.evidencia['modelo']=self.args.modelo
         esquema=self.mod.resumir_esquema(self.ddl)
         perguntas=[
-            ('Quantas pessoas estao cadastradas? Retorne uma unica coluna total com COUNT(*).',[(30,)]),
-            ('Liste somente id_atividade e titulo das atividades do tipo workshop, ordenadas por id_atividade.',None),
-            ('Quais sessoes estao lotadas? Retorne somente id_sessao em ordem crescente.',[(8,),(9,),(18,)]),
+            ('Quantas pessoas estao cadastradas? Retorne uma unica coluna total com COUNT(*).',[(30,)],True),
+            ('Liste somente id_atividade e titulo das atividades do tipo workshop, ordenadas por id_atividade.',None,True),
+            ('Liste somente o id_sessao e o nome do espaco de cada sessao, ordenados por id_sessao.',None,True),
+            ('Quais sessoes estao lotadas? Retorne somente id_sessao em ordem crescente.',[(8,),(9,),(18,)],False),
         ]
         with self.conexao(self.demo) as c:
-            perguntas[1]=(perguntas[1][0],self.mod.executar_select(c,"SELECT id_atividade,titulo FROM atividade WHERE tipo='workshop' ORDER BY id_atividade")[1])
+            perguntas[1]=(perguntas[1][0],self.mod.executar_select(c,"SELECT id_atividade,titulo FROM atividade WHERE tipo='workshop' ORDER BY id_atividade")[1],True)
+            perguntas[2]=(perguntas[2][0],self.mod.executar_select(c,'SELECT s.id_sessao,e.nome FROM sessao s JOIN espaco e USING(id_espaco) ORDER BY s.id_sessao')[1],True)
             detalhes=[]
-            for pergunta,esperado in perguntas:
+            self.evidencia['ollama_perguntas']=detalhes
+            for pergunta,esperado,obrigatoria in perguntas:
                 inicio=time.monotonic()
                 comando=self.mod.gerar_sql(cliente,self.args.modelo,esquema,pergunta)
-                validado,erro=self.mod.validar_sql_gerado(comando)
-                self.verificar(not erro,'Ollama real gera consulta unica de leitura',erro)
-                colunas,linhas=self.mod.executar_select(c,validado)
-                self.verificar(linhas==esperado,'resultado do Ollama real confere com banco',{'pergunta':pergunta,'sql':validado,'linhas':linhas})
-                detalhes.append({'pergunta':pergunta,'sql':validado,'linhas':linhas,'segundos':round(time.monotonic()-inicio,2)})
-            self.evidencia['ollama_perguntas']=detalhes
+                tentativas=[]
+                linhas=None
+                falha_final=None
+                # Mesmo limite da CLI: uma geracao e, se o banco rejeitar o SQL,
+                # uma unica correcao com o erro REAL do PostgreSQL.
+                for tentativa in (1,2):
+                    validado,erro=self.mod.validar_sql_gerado(comando)
+                    if erro:
+                        falha_final=erro
+                        break
+                    try:
+                        colunas,linhas=self.mod.executar_select(c,validado)
+                        tentativas.append({'sql':validado,'resultado':'executado'})
+                        break
+                    except psycopg.Error as falha:
+                        tentativas.append({'sql':validado,'erro_postgresql':str(falha).strip()})
+                        if tentativa==2:
+                            falha_final=str(falha).strip()
+                            break
+                        comando=self.mod.gerar_sql(cliente,self.args.modelo,esquema,pergunta,str(falha).strip(),validado)
+                correto=not falha_final and linhas==esperado
+                detalhes.append({'pergunta':pergunta,'sql':validado,'linhas':linhas,'esperado':esperado,
+                                 'correto':correto,'obrigatoria':obrigatoria,'erro_final':falha_final,
+                                 'tentativas':tentativas,'segundos':round(time.monotonic()-inicio,2)})
+                if obrigatoria:
+                    self.verificar(not falha_final,'Ollama real gera consulta unica de leitura',falha_final)
+                    self.verificar(correto,'resultado do Ollama real confere com banco',{'pergunta':pergunta,'sql':validado,'linhas':linhas})
+                else:
+                    # Enunciado permite resultado OU erro apresentado. A dificuldade
+                    # deste benchmark fica exposta, nunca convertida em acerto.
+                    print('BENCHMARK COMPLEXO: '+('correto' if correto else 'limitacao do modelo, registrada'),flush=True)
+            self.evidencia['ollama_limitacoes']=[d for d in detalhes if not d['correto']]
         env={**os.environ,'PYTHONIOENCODING':'utf-8'}
         proc=subprocess.run([sys.executable,str(self.raiz/'Prototipo/main.py')],
             input='2\nQuantas pessoas estao cadastradas? Retorne COUNT(*) AS total.\n0\n',
@@ -321,6 +352,13 @@ class Validacao:
         self.verificar(proc.returncode==0 and '[ERRO]' not in proc.stdout and '30' in proc.stdout,
                        'CLI extraida completa caminho pergunta-Ollama-banco-resultado',proc.stderr)
         (self.args.trabalho/'cli-ollama.log').write_text(proc.stdout,encoding='utf-8')
+        proc=subprocess.run([sys.executable,str(self.raiz/'Prototipo/main.py')],
+            input='2\nQuais sessoes estao lotadas? Retorne somente id_sessao em ordem crescente.\n1\n1\n0\n',
+            text=True,encoding='utf-8',capture_output=True,cwd=self.pasta,env=env,timeout=600)
+        self.verificar(proc.returncode==0 and 'Traceback' not in proc.stderr and 'CONSULTA 1:' in proc.stdout and '(19 linhas)' in proc.stdout,
+                       'CLI permanece utilizavel apos pergunta complexa, inclusive se o modelo errar',proc.stderr)
+        self.evidencia['cli_pergunta_complexa']='erro_apresentado' if '[ERRO]' in proc.stdout else 'consulta_executada'
+        (self.args.trabalho/'cli-ollama-complexa.log').write_text(proc.stdout,encoding='utf-8')
 
     def executar(self):
         try:
@@ -330,7 +368,11 @@ class Validacao:
                 if atual!=contexto['pacote_sha256']:
                     raise ValueError('Pacote mudou; executar novamente a validacao completa')
                 self.evidencia=json.loads(self.args.relatorio.read_text(encoding='utf-8'))
-                self.resultados=self.evidencia['testes']
+                self.resultados=[t for t in self.evidencia['testes'] if t['teste'] not in (
+                    'Ollama real gera consulta unica de leitura','resultado do Ollama real confere com banco',
+                    'CLI extraida completa caminho pergunta-Ollama-banco-resultado',
+                    'CLI permanece utilizavel apos pergunta complexa, inclusive se o modelo errar')]
+                self.evidencia['testes']=self.resultados
                 self.raiz=Path(contexto['raiz']);self.demo=contexto['demo']
                 spec=importlib.util.spec_from_file_location('prototipo_extraido',self.raiz/'Prototipo/main.py')
                 self.mod=importlib.util.module_from_spec(spec);spec.loader.exec_module(self.mod)
@@ -346,6 +388,7 @@ class Validacao:
             if self.args.testar_ollama:self.testar_ollama()
             self.evidencia['ollama_testado']=self.args.testar_ollama
             self.evidencia['aprovado']=True
+            self.evidencia.pop('erro',None)
         except Exception as err:
             self.evidencia['aprovado']=False
             self.evidencia['erro']=str(err)

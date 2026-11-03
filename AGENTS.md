@@ -21,14 +21,14 @@
 ## Fontes e estrutura
 
 - `docs/modelagem/ER.drawio` e `Relacional.pdf`: diagramas principais existentes.
-- `ER.pdf` e `Relacional.mmd`: pendentes; não substituir o fonte Mermaid por DOCX.
+- `ER.pdf`, `ER.drawio`, `Relacional.mmd` e `Relacional.pdf` estão disponíveis; preservar os fontes editáveis.
 - O GitHub é a fonte principal. ZIP do Drive e plano de execução são apoio externo;
   não importar suas versões nem transformar sugestões em decisões sem solicitação do grupo.
 - `docs/decisoes.md`: separar fatos confirmados, observações dos modelos e propostas não validadas.
 - `sql/01_tabelas.sql`: tabelas e demais estruturas; `02_triggers.sql`: funções e triggers;
   `03_dml.sql`: dados; `04_consultas.sql`: cinco consultas e respectivos objetivos.
 - `prototipo/main.py`, configuração local `config.json`, dependências `requirements.txt`.
-- `tests/`: verificações futuras; `entrega/`: derivados finais, sem cópias-fonte divergentes.
+- `tests/`: baseline DDL, triggers e ensaio do pacote; `entrega/`: derivados finais, sem cópias-fonte divergentes.
 - `docs/legado/`: dois marcadores vazios preservados, sem implementação ou uso atual.
 
 ## Código (para as etapas posteriores)

@@ -366,7 +366,13 @@ def montar_prompt_sistema(esquema):
         "- Sessao lotada: ocupacao >= vagas efetivas (use GROUP BY ... HAVING).\n"
         "- Lista de espera: inscricao_sessao com status 'LISTA_ESPERA', ordenada por posicao_espera.\n\n"
         "ESQUEMA DO BANCO:\n"
-        f"{esquema}"
+        f"{esquema}\n\n"
+        "DISTINCAO FINAL DE SEMANTICA:\n"
+        "- Lotacao nao e status da sessao. Uma sessao pode estar lotada sendo AGENDADA ou REALIZADA.\n"
+        "- Para perguntar por sessoes lotadas, compare inscricoes CONFIRMADA com vagas efetivas.\n"
+        "  Nao acrescente filtro em sessao.status, salvo se o usuario pedir explicitamente esse status.\n"
+        "- O filtro inscricao_sessao.status = 'CONFIRMADA' e parte do calculo de ocupacao,\n"
+        "  mesmo quando a palavra 'confirmada' nao aparece na pergunta.\n"
     )
 
 

@@ -45,6 +45,12 @@ primeira e verifica a decisão final, sem timeout seguido de retry manual.
 - Mantida a implementação de João e a leitura de DDL/consultas de Projeto.txt.
 - Projeto.txt ausente agora encerra com código 1, conforme o PDF, em vez de
   permitir uso do modelo sem o arquivo obrigatório.
+- O ensaio real do qwen3:8b revelou um filtro indevido por REALIZADA na pergunta
+  sobre lotação. Esclarecemos no prompt a diferença entre status e ocupação,
+  sem embutir SQL/respostas ou IDs da carga. Uma execução passou a retornar as
+  três sessões corretas, mas outras ainda produziram SQL incorreto. Esses casos
+  são registrados como limitações, sem contá-los como acertos. O teste também
+  verifica a mensagem de erro e a continuidade do menu, conforme o enunciado.
 - Dependências diretas fixadas nas versões utilizadas nos testes: ollama 0.6.3
   e psycopg[binary] 3.3.7. Python de integração: 3.12.
 - Configuração distribuível possui senha fictícia; configuração local nunca é
