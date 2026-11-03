@@ -1,0 +1,150 @@
+---
+title: Modelo Relacional - Gestao de Eventos e Espacos (Semana da Computacao)
+---
+erDiagram
+    %% Fonte: sql/01_tabelas.sql (16 tabelas) e docs/modelagem/ER.drawio.
+    %% Linha continua: FK faz parte da PK (tabela associativa).
+    %% Linha tracejada: FK fora da PK.
+
+    %% ---------- Relacionamentos ----------
+    SESSAO ||--o{ INSCRICAO_SESSAO : "recebe inscricao"
+    RECURSO ||--o{ ESPACO_RECURSO : "existe em"
+    EDICAO ||..o{ ATIVIDADE : "compoe"
+    ESPACO ||..o{ SESSAO : "sedia"
+    ATIVIDADE ||..o{ SESSAO : "realiza-se em"
+    EVENTO ||..|{ EDICAO : "tem"
+    PROMOTOR ||--o{ EDICAO_PROMOTOR : "atua"
+    RECURSO ||--o{ ATIVIDADE_RECURSO : "exigido por"
+    ATIVIDADE ||--o{ ATIVIDADE_PESSOA : "tem ministrante"
+    EDICAO ||--o{ INSCRICAO_EDICAO : "recebe"
+    SESSAO ||..o{ HISTORICO_SESSAO : "registra"
+    PESSOA ||--o{ EQUIPE_EDICAO : "integra equipe"
+    EDICAO ||--o{ EQUIPE_EDICAO : "tem equipe"
+    ATIVIDADE ||--o{ ATIVIDADE_RECURSO : "exige"
+    PESSOA ||--o{ INSCRICAO_EDICAO : "inscreve-se na edicao"
+    EDICAO ||--|{ EDICAO_PROMOTOR : "promovida por"
+    PESSOA ||--o{ INSCRICAO_SESSAO : "inscreve-se na sessao"
+    ESPACO ||--o{ ESPACO_RECURSO : "dispoe de"
+    PESSOA ||--o{ ATIVIDADE_PESSOA : "ministra"
+
+    %% ---------- Entidades ----------
+    EVENTO {
+        int id_evento PK
+        varchar nome
+        text descricao "NULL permitido"
+        varchar area "NULL permitido"
+    }
+
+    EDICAO {
+        int id_edicao PK
+        int id_evento FK, UK "UK composta com ano"
+        int ano UK "UK composta com id_evento; ano maior que 0"
+        date data_inicio
+        date data_fim "maior ou igual a data_inicio"
+        varchar cidade "NULL permitido"
+        varchar status "PLANEJADA, EM_ANDAMENTO, ENCERRADA, CANCELADA"
+    }
+
+    PROMOTOR {
+        int id_promotor PK
+        varchar nome
+        varchar tipo "PESSOA ou ORGANIZACAO"
+        varchar documento UK "CPF ou CNPJ"
+    }
+
+    PESSOA {
+        int id_pessoa PK
+        varchar nome
+        varchar email UK
+        varchar instituicao "NULL permitido"
+    }
+
+    ESPACO {
+        int id_espaco PK
+        varchar nome
+        varchar tipo "sala, auditorio, laboratorio..."
+        int capacidade "maior que 0"
+        varchar predio "NULL permitido"
+    }
+
+    RECURSO {
+        int id_recurso PK
+        varchar nome UK
+    }
+
+    ATIVIDADE {
+        int id_atividade PK
+        int id_edicao FK
+        varchar titulo
+        text descricao "NULL permitido"
+        varchar tipo "palestra, workshop, minicurso, painel..."
+        int carga_horaria "NULL permitido; maior que 0"
+    }
+
+    SESSAO {
+        int id_sessao PK
+        int id_atividade FK
+        int id_espaco FK
+        date data
+        time hora_inicio
+        time hora_fim "maior que hora_inicio"
+        int vagas_limite "NULL = sem limite proprio; maior que 0"
+        varchar status "AGENDADA, REALIZADA, CANCELADA"
+        int duracao_min "atributo gerado"
+    }
+
+    HISTORICO_SESSAO {
+        int id_historico PK
+        int id_sessao FK
+        varchar espaco_anterior
+        date data_anterior
+        time hora_inicio_anterior
+        time hora_fim_anterior
+        timestamp alterado_em
+        text motivo "NULL permitido"
+    }
+
+    EDICAO_PROMOTOR {
+        int id_edicao PK, FK
+        int id_promotor PK, FK
+        varchar papel "principal ou co-promotor"
+    }
+
+    INSCRICAO_EDICAO {
+        int id_pessoa PK, FK
+        int id_edicao PK, FK
+        timestamp data_inscricao
+        varchar status "CONFIRMADA, CANCELADA"
+    }
+
+    EQUIPE_EDICAO {
+        int id_pessoa PK, FK
+        int id_edicao PK, FK
+        varchar papel "organizador, voluntario"
+    }
+
+    ATIVIDADE_PESSOA {
+        int id_atividade PK, FK
+        int id_pessoa PK, FK
+        varchar papel "palestrante, instrutor, mediador"
+    }
+
+    INSCRICAO_SESSAO {
+        int id_sessao PK, FK, UK "UK composta com posicao_espera"
+        int id_pessoa PK, FK
+        timestamp data_inscricao
+        varchar status "CONFIRMADA, LISTA_ESPERA, CANCELADA"
+        int posicao_espera UK "UK composta com id_sessao (adiavel); NULL fora da lista de espera"
+    }
+
+    ESPACO_RECURSO {
+        int id_espaco PK, FK
+        int id_recurso PK, FK
+        int quantidade "maior que 0"
+    }
+
+    ATIVIDADE_RECURSO {
+        int id_atividade PK, FK
+        int id_recurso PK, FK
+        int quantidade_minima "maior que 0"
+    }
