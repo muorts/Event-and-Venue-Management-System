@@ -176,10 +176,9 @@ Após a conclusão da primeira transação, a operação foi repetida e pôde pr
 
 Ainda devem ser verificados e registrados:
 
-- Duas inscrições simultâneas disputando a última vaga, com resultado final conferido.
 - Dois agendamentos simultâneos conflitantes.
 - Possíveis situações de deadlock.
-- - Redução de capacidade durante operações concorrentes de inscrição.
+- Redução de capacidade durante operações concorrentes de inscrição.
 
 ### Testes adicionais de capacidade
 
@@ -201,6 +200,34 @@ Ainda devem ser verificados e registrados:
 - Resultado obtido: TESTE 18 APROVADO.
 - O teste também verifica se `vagas_limite` permanece igual a 2.
 - Os dados temporários são desfeitos com `ROLLBACK`.
+
+### Teste de concorrência — disputa pela última vaga
+
+**Banco utilizado:** scc0640_teste_marcela  
+**Sessão de teste:** 22  
+**Limite de vagas:** 1
+
+**Procedimento:**
+
+1. Na conexão 1, foi iniciada uma transação e realizada a inscrição da pessoa 14.
+2. A inscrição recebeu status CONFIRMADA.
+3. A transação permaneceu aberta, mantendo o bloqueio da sessão.
+4. Na conexão 2, a pessoa 15 tentou se inscrever.
+5. A operação aguardou o bloqueio e atingiu o timeout de 5 segundos (SQLSTATE 55P03).
+6. Foi executado COMMIT na conexão 1.
+7. Na conexão 2, foi executado ROLLBACK para encerrar a transação abortada.
+8. A inscrição da pessoa 15 foi repetida com sucesso.
+
+**Resultado final:**
+
+- Pessoa 14: CONFIRMADA.
+- Pessoa 15: LISTA_ESPERA, posição 1.
+- Total de confirmados: 1.
+- Capacidade da sessão respeitada.
+
+**Conclusão:** o teste confirmou o bloqueio entre conexões e o comportamento correto das inscrições após a liberação da transação. A segunda tentativa foi repetida após o timeout; portanto, não foi uma espera contínua até o COMMIT.
+
+**Limpeza:** as inscrições de teste e a sessão 22 foram removidas após a verificação.
 
 ### Testes ainda pendentes
 
