@@ -224,7 +224,13 @@ $function$;
 
 
 
-CREATE TRIGGER trg_controlar_vagas_sessao BEFORE INSERT OR UPDATE OF status ON inscricao_sessao FOR EACH ROW EXECUTE FUNCTION fn_controlar_vagas_sessao();
+
+CREATE TRIGGER trg_controlar_vagas_sessao
+BEFORE INSERT OR UPDATE OF status, id_sessao, id_pessoa
+ON inscricao_sessao
+FOR EACH ROW
+EXECUTE FUNCTION fn_controlar_vagas_sessao();
+
 
 
 CREATE TRIGGER trg_promover_lista_espera AFTER UPDATE OF status ON inscricao_sessao FOR EACH ROW WHEN (old.status::text = 'CONFIRMADA'::text AND new.status::text = 'CANCELADA'::text) EXECUTE FUNCTION fn_promover_lista_espera();
@@ -235,3 +241,92 @@ CREATE TRIGGER trg_registrar_historico_sessao AFTER UPDATE OF id_espaco, data, h
 
 CREATE TRIGGER trg_verificar_conflito_sessao BEFORE INSERT OR UPDATE OF id_espaco, data, hora_inicio, hora_fim, status ON sessao FOR EACH ROW EXECUTE FUNCTION fn_verificar_conflito_sessao();
 
+
+-- =====================================================
+-- PROTECAO CONTRA REDUCAO INDEVIDA DE VAGAS
+-- =====================================================
+
+CREATE OR REPLACE FUNCTION public.fn_impedir_reducao_vagas()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_confirmados integer;
+    v_capacidade integer;
+    v_limite integer;
+BEGIN
+    SELECT e.capacidade
+    INTO v_capacidade
+    FROM espaco e
+    WHERE e.id_espaco = NEW.id_espaco;
+
+    v_limite := LEAST(
+        COALESCE(NEW.vagas_limite, v_capacidade),
+        v_capacidade
+    );
+
+    SELECT COUNT(*)
+    INTO v_confirmados
+    FROM inscricao_sessao
+    WHERE id_sessao = NEW.id_sessao
+      AND status = 'CONFIRMADA';
+
+    IF v_confirmados > v_limite THEN
+        RAISE EXCEPTION
+            'Reducao de vagas invalida: % confirmados para % vagas',
+            v_confirmados, v_limite;
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trg_impedir_reducao_vagas
+BEFORE UPDATE OF vagas_limite, id_espaco
+ON sessao
+FOR EACH ROW
+EXECUTE FUNCTION public.fn_impedir_reducao_vagas();
+
+
+-- =====================================================
+-- PROTECAO DA CAPACIDADE FISICA DO ESPACO
+-- =====================================================
+
+CREATE OR REPLACE FUNCTION public.fn_validar_capacidade_espaco()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_sessao integer;
+    v_confirmados integer;
+BEGIN
+    IF NEW.capacidade >= OLD.capacidade THEN
+        RETURN NEW;
+    END IF;
+
+    SELECT s.id_sessao, COUNT(i.id_pessoa)
+    INTO v_sessao, v_confirmados
+    FROM sessao s
+    JOIN inscricao_sessao i
+      ON i.id_sessao = s.id_sessao
+     AND i.status = 'CONFIRMADA'
+    WHERE s.id_espaco = NEW.id_espaco
+    GROUP BY s.id_sessao
+    HAVING COUNT(i.id_pessoa) > NEW.capacidade
+    LIMIT 1;
+
+    IF FOUND THEN
+        RAISE EXCEPTION
+            'Capacidade invalida: sessao % possui % confirmados para capacidade %',
+            v_sessao, v_confirmados, NEW.capacidade;
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trg_validar_capacidade_espaco
+BEFORE UPDATE OF capacidade
+ON espaco
+FOR EACH ROW
+EXECUTE FUNCTION public.fn_validar_capacidade_espaco();
