@@ -1,3 +1,8 @@
+> Nota da integração final: este documento preserva o relato original de Marcela.
+> A versão final acrescenta sincronização entre tabelas, validação adiada das
+> participações mínimas e correção de status inválido/NULL. Veja
+> [integração final](integracao-final.md) e [evidências](validacao_entrega.json).
+
 # Documentação das Triggers — SCC0640
 
 ## Sistema de Gestão de Eventos e Espaços

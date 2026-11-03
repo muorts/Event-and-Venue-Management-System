@@ -3,7 +3,8 @@
 Fonte canônica: `sql/01_tabelas.sql`. Base de desenvolvimento: `main` no commit
 `76c3da0`; branch `feat/ddl-victor`. Modelagem oficial: `docs/modelagem/ER.drawio`
 e `docs/modelagem/Relacional.pdf`. As seis decisões foram aprovadas pelo grupo.
-Não foram criados os triggers, o DML de entrega, as cinco consultas ou o protótipo.
+Esse foi o escopo da etapa inicial do DDL. As demais partes foram integradas
+posteriormente; veja [integração final](integracao-final.md).
 
 ## Execução
 
@@ -347,10 +348,10 @@ permite um papel por par, conforme o PDF; a mesma pessoa pode acumular os três
 papéis de Q2 em associações distintas.
 
 As participações mínimas do lado pai do E/R (`EVENTO` com pelo menos uma `EDICAO`
-e `EDICAO` com pelo menos um promotor) não são garantidas por uma FK comum. Pai e
-filhos devem ser cadastrados na mesma operação transacional. Para garantia integral
-no banco ao COMMIT, serão necessários constraint triggers adiáveis adicionais,
-fora desta etapa. Isso está pendente e não foi apresentado como validado pelo DDL.
+e `EDICAO` com pelo menos um promotor) não são garantidas por uma FK comum. A
+integração final implementa quatro constraint triggers adiáveis em 02_triggers.sql.
+Pai e filhos devem ser cadastrados na mesma operação transacional; a validação
+ocorre no COMMIT. O esquema das 16 tabelas não foi alterado.
 
 ## Responsabilidades e fonte das consultas
 
@@ -358,43 +359,16 @@ Waldrighi/Lucas escreve e testa as cinco consultas e seus objetivos em
 `sql/04_consultas.sql`. João Marcelo integra essas consultas ao menu Python e
 apresenta resultados; não precisa escrever outro conjunto de cinco. Victor integra
 a versão final no Projeto.txt. O PDF exige extração do DDL de Projeto.txt, mas não
-obriga que as consultas do menu sejam lidas dele. Definir o carregamento na etapa
-do protótipo, mantendo a mesma versão do SQL.
+obriga que as consultas do menu sejam lidas dele. O grupo decidiu posteriormente
+que o protótipo final também lê as consultas de Projeto.txt para não depender da
+pasta sql/ no pacote. Essa decisão já está implementada.
 
 ## Validação executada e limites
 
-Motor utilizado: `PostgreSQL 18.6 (PGlite 0.5.14) on wasm32-unknown-emscripten, compiled by emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 6.0.5 (1db513782be24469589d7cb8a1f1834e9a33f271), 32-bit`.
+O DDL original passou em 125 verificações em PostgreSQL 18.6 nativo no Windows
+(commit f9ba4dc, evidência 742c950). O ensaio final repete esse baseline em base
+separada e valida o DDL extraído do Projeto.txt, os triggers, DML, consultas e CLI
+do pacote real. Resultados finais em [validacao_entrega.json](validacao_entrega.json).
 
-**125 verificações aprovadas**, executadas sobre a versão deste DDL:
-
-- DDL completo em base vazia; exatamente 16 tabelas, 16 PKs e 19 FKs validadas.
-- Cada FK: UPDATE órfão rejeitado, DELETE do pai rejeitado e conteúdo da FK
-  atualizado em cascata após UPDATE do pai.
-- Duplicações rejeitadas em cada uma das 16 tabelas; UNIQUEs e principais NOT NULLs.
-- Datas/horários inválidos, capacidade/vagas/quantidades, status e papéis inválidos.
-- Duração gerada no INSERT e recalculada no UPDATE; tentativa de escrita rejeitada.
-- Defaults, acúmulo de papéis, independência das inscrições, fila e cancelamento,
-  reordenação com UNIQUE adiada e identidade automática.
-- Fixtures revertidas; nenhuma implementação de trigger de negócio presente.
-
-PostgreSQL nativo 18.6 foi encontrado e o serviço local respondeu na porta 5432,
-mas a conexão exige senha, que não foi solicitada no chat. Duas tentativas de
-inicializar uma instância nativa isolada excederam o tempo no ambiente restrito
-(a segunda parou ao selecionar shared_buffers). Portanto, **não foi aprovado nem
-executado com sucesso o teste em servidor PostgreSQL nativo**. O resultado acima
-é real, mas corresponde ao motor PostgreSQL compilado em WASM pelo PGlite.
-Não cobre concorrência de múltiplas conexões, serviço do Windows, autenticação,
-psycopg/Ollama ou triggers ainda não implementados. Repetir o mesmo SQL de testes
-em base nativa vazia antes da integração final.
-
-Referência técnica: [restrições do PostgreSQL](https://www.postgresql.org/docs/18/ddl-constraints.html)
-explica o limite de CHECKs sobre outras linhas/tabelas;
-[PGlite](https://pglite.dev/docs/about) descreve o motor WASM utilizado nos testes.
-
-## Validacao nativa complementar
-
-Executada no Windows fora do ambiente restrito: `PostgreSQL 18.6 on x86_64-windows, compiled by msvc-19.44.35229, 64-bit`.
-
-DDL completo em base vazia e **125 testes aprovados**, com todas as fixtures revertidas.
-Instancia temporaria autenticada por SCRAM, em porta propria, encerrada apos o teste.
-SHA-256 do DDL: `d35569baabd7c4fcb916447a709a4962f7d84ca199017754a1b968eb2337b49c`.
+O contrato de tabelas/colunas acima continua válido. As limitações restantes e
+as correções de integração estão em [integracao-final.md](integracao-final.md).

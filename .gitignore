@@ -1,5 +1,7 @@
 # Configuração local: nunca versionar credenciais reais.
 /prototipo/config.json
+/Projeto.txt
+/SCC0640_*.zip
 **/.env
 **/.env.*
 !**/.env.example

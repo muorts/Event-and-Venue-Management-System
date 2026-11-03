@@ -2,9 +2,10 @@
 
 ## Escopo e preservação
 
-- A reorganização inicial foi aprovada e integrada. A etapa atual, em `feat/ddl-victor`,
-  implementa exclusivamente o DDL, seus testes e documentação.
-- Não implementar os triggers de Marcela, DML/consultas de Waldrighi ou protótipo de João nesta etapa.
+- Reorganização e DDL aprovados. A etapa atual integra os PRs de Marcela/João,
+  DML/consultas de Lucas, documentação de Murilo e os artefatos finais.
+- Preservar autoria e fontes; fazer correções de integração necessárias com testes
+  reproduzíveis, sem alterar silenciosamente entidades/atributos/cardinalidades.
 - Preservar o trabalho de Murilo, os formatos originais e os fontes editáveis.
 - Não alterar entidades, atributos, relacionamentos ou cardinalidades durante a reorganização.
 - Usar `git mv` para movimentações; explicar remoções e não preencher ausências com conteúdo fictício.
@@ -12,7 +13,7 @@
 ## Branches e revisão
 
 - Não trabalhar diretamente na `main`; integrar por Pull Request revisável.
-- A implementação do DDL ocorrerá em outra branch, conforme combinado pelo grupo.
+- O DDL está integrado pelo PR #3. Alterações futuras devem usar branch própria e revisão de impacto.
 - Convenção para trabalhos futuros: `feat/<tema>`, `fix/<tema>` e `chore/<tema>`;
   são convenções de organização, não indicação de que funcionalidades já existem.
 - Commits e PRs devem descrever escopo e verificação; não misturar modelagem e reorganização.
@@ -49,9 +50,20 @@
 - Victor: DDL, integração e entrega; Marcela: triggers; João Marcelo: protótipo e Mermaid;
   Waldrighi: DML e consultas; Murilo: documentação, E/R e instruções.
 - Q1–Q6 foram confirmadas pelo usuário e estão registradas em `docs/decisoes.md`.
-- Modelo LLM e versões de distribuição de PostgreSQL/Ollama do grupo ainda não foram fixados.
+- Modelo local utilizado: qwen3:8b. Integração validada em PostgreSQL 18.6 e Python 3.12;
+  requisito acadêmico permanece PostgreSQL e Python 3.11+. Versões Python em requirements.txt.
 - Consultar `docs/ddl.md` para colunas, restrições, integração dos triggers e resultados dos testes.
 
 As instruções dos PDFs descrevem os requisitos acadêmicos. Exercícios de treinamento
 e sugestões nos documentos de referência não autorizam mudanças de escopo nem
 devem ser tratados como o esquema do grupo.
+
+## Entrega e validação finais
+
+- Gerar artefatos por `python scripts/preparar_entrega.py`; não editar derivados.
+- Projeto.txt é a fonte runtime do DDL e das cinco consultas. Não depender de sql/ no ZIP.
+- Nunca incluir config.json local; o empacotador gera exemplo sem senha real.
+- Testar o ZIP extraído por `tests/test_entrega.py` em instância exclusiva de testes.
+- Evidências em docs/validacao_entrega.json; limitações em docs/integracao-final.md.
+- Usar o isolamento padrão READ COMMITTED nos fluxos de escrita demonstrados.
+- Não considerar teste com mock como aprovação do Ollama local real.

@@ -8,6 +8,12 @@ DECLARE
     v_proxima_posicao integer;
     v_primeiro_espera integer;
 BEGIN
+    -- Nao transformar uma entrada invalida em CONFIRMADA: NOT NULL/CHECK do
+    -- DDL devem continuar rejeitando NULL ou um status fora do dominio.
+    IF NEW.status IS NULL OR NEW.status NOT IN ('CONFIRMADA', 'LISTA_ESPERA', 'CANCELADA') THEN
+        RETURN NEW;
+    END IF;
+
     -- Impede a troca da pessoa ou da sessão por UPDATE.
     IF TG_OP = 'UPDATE' THEN
         IF NEW.id_sessao <> OLD.id_sessao
@@ -330,3 +336,90 @@ BEFORE UPDATE OF capacidade
 ON espaco
 FOR EACH ROW
 EXECUTE FUNCTION public.fn_validar_capacidade_espaco();
+
+
+-- INTEGRACAO: operacoes de sala/sessao/inscricao precisam compartilhar a
+-- sincronizacao ANTES de adquirir locks nas linhas de tabelas diferentes.
+-- Sem isto, a reducao da sala pode ignorar inscricoes ainda nao commitadas.
+-- Escolha conservadora para este projeto: serializar essas escritas na transacao.
+-- Leituras continuam concorrentes. Usar READ COMMITTED (padrao do PostgreSQL).
+CREATE OR REPLACE FUNCTION public.fn_serializar_programacao_inscricoes()
+RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+    PERFORM pg_advisory_xact_lock(640, 2026);
+    RETURN NULL;
+END;
+$$;
+
+CREATE TRIGGER trg_serializar_inscricoes
+BEFORE INSERT OR UPDATE OR DELETE ON inscricao_sessao
+FOR EACH STATEMENT EXECUTE FUNCTION public.fn_serializar_programacao_inscricoes();
+
+CREATE TRIGGER trg_serializar_programacao
+BEFORE INSERT OR UPDATE OR DELETE ON sessao
+FOR EACH STATEMENT EXECUTE FUNCTION public.fn_serializar_programacao_inscricoes();
+
+CREATE TRIGGER trg_serializar_capacidade
+BEFORE INSERT OR UPDATE OR DELETE ON espaco
+FOR EACH STATEMENT EXECUTE FUNCTION public.fn_serializar_programacao_inscricoes();
+
+
+-- INTEGRACAO: participacoes minimas dos pais, ja presentes no E/R.
+-- A verificacao e adiada ate o COMMIT para cadastrar pai e filhos juntos.
+CREATE OR REPLACE FUNCTION public.fn_validar_evento_com_edicao()
+RETURNS trigger LANGUAGE plpgsql AS $$
+DECLARE
+    v_evento integer;
+BEGIN
+    IF TG_TABLE_NAME = 'evento' THEN
+        v_evento := NEW.id_evento;
+    ELSE
+        v_evento := OLD.id_evento;
+    END IF;
+    PERFORM 1 FROM evento WHERE id_evento = v_evento FOR UPDATE;
+    IF FOUND AND NOT EXISTS (SELECT 1 FROM edicao WHERE id_evento = v_evento) THEN
+        RAISE EXCEPTION 'Evento % precisa de pelo menos uma edicao.', v_evento
+            USING ERRCODE = '23514', CONSTRAINT = 'ct_evento_com_edicao';
+    END IF;
+    RETURN NULL;
+END;
+$$;
+
+CREATE CONSTRAINT TRIGGER ct_evento_com_edicao
+AFTER INSERT OR UPDATE ON evento
+DEFERRABLE INITIALLY DEFERRED
+FOR EACH ROW EXECUTE FUNCTION public.fn_validar_evento_com_edicao();
+
+CREATE CONSTRAINT TRIGGER ct_edicao_preserva_evento
+AFTER DELETE OR UPDATE ON edicao
+DEFERRABLE INITIALLY DEFERRED
+FOR EACH ROW EXECUTE FUNCTION public.fn_validar_evento_com_edicao();
+
+CREATE OR REPLACE FUNCTION public.fn_validar_edicao_com_promotor()
+RETURNS trigger LANGUAGE plpgsql AS $$
+DECLARE
+    v_edicao integer;
+BEGIN
+    IF TG_TABLE_NAME = 'edicao' THEN
+        v_edicao := NEW.id_edicao;
+    ELSE
+        v_edicao := OLD.id_edicao;
+    END IF;
+    PERFORM 1 FROM edicao WHERE id_edicao = v_edicao FOR UPDATE;
+    IF FOUND AND NOT EXISTS (SELECT 1 FROM edicao_promotor WHERE id_edicao = v_edicao) THEN
+        RAISE EXCEPTION 'Edicao % precisa de pelo menos um promotor.', v_edicao
+            USING ERRCODE = '23514', CONSTRAINT = 'ct_edicao_com_promotor';
+    END IF;
+    RETURN NULL;
+END;
+$$;
+
+CREATE CONSTRAINT TRIGGER ct_edicao_com_promotor
+AFTER INSERT OR UPDATE ON edicao
+DEFERRABLE INITIALLY DEFERRED
+FOR EACH ROW EXECUTE FUNCTION public.fn_validar_edicao_com_promotor();
+
+CREATE CONSTRAINT TRIGGER ct_promotor_preserva_edicao
+AFTER DELETE OR UPDATE ON edicao_promotor
+DEFERRABLE INITIALLY DEFERRED
+FOR EACH ROW EXECUTE FUNCTION public.fn_validar_edicao_com_promotor();

@@ -1,2 +1,2 @@
-ollama
-psycopg[binary]
+ollama==0.6.3
+psycopg[binary]==3.3.7

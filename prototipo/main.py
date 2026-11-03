@@ -7,7 +7,7 @@ Configuracao: editar apenas config.json (conexao PostgreSQL e modelo Ollama).
 
 Fluxo:
   1. Le config.json (mesma pasta deste arquivo).
-  2. Le Projeto.txt (pasta acima ou mesma pasta) e extrai:
+  2. Le Projeto.txt (pasta imediatamente acima) e extrai:
        - o DDL  (entre "3. DDL COMPLETO" e "4. CONSULTAS")  -> contexto do esquema para o LLM
        - as 5 consultas (secao "4. CONSULTAS")             -> menu de consultas predefinidas
   3. Conecta ao PostgreSQL (psycopg) e ao Ollama (ollama.Client).
@@ -533,7 +533,7 @@ def main():
     if texto is None:
         print(f"[ERRO] Projeto.txt nao encontrado em {PROJETO_PATH}")
         print("  Ele deve ficar na pasta acima de Prototipo/ (ProjetoBD/Projeto.txt).")
-        ddl, consultas = "", []
+        raise SystemExit(1)
     else:
         ddl = extrair_ddl(texto)
         consultas = extrair_consultas(texto)
