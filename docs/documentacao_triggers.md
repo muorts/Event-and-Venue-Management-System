@@ -7,12 +7,14 @@ Este documento descreve as seis funções de trigger implementadas em PostgreSQL
 **Arquivo de implementação:** `sql/02_triggers.sql`  
 **Arquivo de testes:** `tests/test_triggers.sql`
 
+---
+
 ## 1. Controle de vagas e lista de espera
 
 **Função:** `fn_controlar_vagas_sessao()`  
 **Trigger:** `trg_controlar_vagas_sessao`  
 **Tabela:** `inscricao_sessao`  
-**Momento:** BEFORE INSERT OR UPDATE OF status  
+**Momento:** BEFORE INSERT OR UPDATE OF status, id_sessao, id_pessoa  
 **Dados utilizados:** NEW e OLD (em atualizações).
 
 ### Regras implementadas
@@ -25,7 +27,7 @@ Este documento descreve as seis funções de trigger implementadas em PostgreSQL
 - As posições da lista de espera são atribuídas sequencialmente.
 - Inscrições que permanecem na lista preservam sua posição.
 - O cancelamento remove a posição de espera.
-- Alterações de pessoa ou sessão são rejeitadas quando a função é acionada.
+- Alterações de pessoa ou sessão por UPDATE são rejeitadas pela função e pela trigger atualizada.
 
 ### Concorrência
 
@@ -33,7 +35,9 @@ A função utiliza `SELECT ... FOR UPDATE` na linha da sessão para serializar o
 
 Essa estratégia foi verificada em um cenário com duas conexões PostgreSQL, no qual a segunda operação encontrou o bloqueio mantido pela primeira transação e atingiu o tempo limite configurado.
 
-**Limitação:** a trigger é acionada em INSERT ou UPDATE de `status`. Alterações somente nas colunas de identificação não acionam essa verificação.
+**Correção aplicada:** a trigger agora é acionada também em UPDATE de `id_sessao` ou `id_pessoa`. Transferências por UPDATE são rejeitadas, inclusive quando somente uma dessas colunas é modificada. A mudança foi confirmada em teste manual no pgAdmin para alteração de sessão.
+
+---
 
 ## 2. Promoção automática da lista de espera
 
@@ -58,6 +62,8 @@ A promoção é realizada por uma atualização na própria tabela de inscriçõ
 
 O cancelamento de uma inscrição em lista de espera não aciona essa promoção.
 
+---
+
 ## 3. Histórico de alterações das sessões
 
 **Função:** `fn_registrar_historico_sessao()`  
@@ -80,6 +86,8 @@ O cancelamento de uma inscrição em lista de espera não aciona essa promoção
 O campo `espaco_anterior` recebe o identificador anterior do espaço convertido para texto, conforme a estrutura da tabela `historico_sessao`.
 
 O campo `motivo` é preenchido com NULL porque a implementação atual não recebe uma justificativa para a alteração.
+
+---
 
 ## 4. Verificação de conflitos de horários
 
@@ -106,6 +114,8 @@ A função bloqueia a linha do espaço com `FOR UPDATE`, buscando impedir que tr
 
 O teste de concorrência entre agendamentos conflitantes foi realizado com duas conexões PostgreSQL. O bloqueio e a rejeição do conflito foram confirmados, conforme descrito na seção 8.
 
+---
+
 ## 5. Proteção contra redução indevida de vagas
 
 **Função:** `fn_impedir_reducao_vagas()`  
@@ -126,6 +136,8 @@ O teste de concorrência entre agendamentos conflitantes foi realizado com duas 
 
 Essa função protege atualizações de sessões existentes. A implementação atual não realiza essa mesma contagem em operações de INSERT.
 
+---
+
 ## 6. Validação da capacidade física do espaço
 
 **Função:** `fn_validar_capacidade_espaco()`  
@@ -141,6 +153,8 @@ Essa função protege atualizações de sessões existentes. A implementação a
 - Conta as inscrições confirmadas de cada sessão.
 - Rejeita a redução se alguma sessão possuir mais confirmados do que a nova capacidade.
 - Permite a redução quando todas as sessões respeitam o novo limite físico.
+
+---
 
 ## 7. Testes funcionais
 
@@ -163,6 +177,33 @@ Na execução realizada no pgAdmin, os testes funcionais numerados de 02 a 16 ap
 Os testes utilizam transações com `ROLLBACK` para desfazer as alterações realizadas durante a verificação.
 
 As duas triggers adicionais de proteção de capacidade foram verificadas pelos testes automatizados 17 e 18, ambos aprovados no pgAdmin.
+
+O teste 01 realiza a consulta de identificação das triggers. Os testes 02 a 18 verificam comportamentos funcionais.
+
+### Teste 19 — Bloqueio de transferência de inscrições
+
+Foi identificado um problema na definição inicial da trigger `trg_controlar_vagas_sessao`: atualizações que modificavam exclusivamente `id_sessao` ou `id_pessoa` não acionavam a função de validação.
+
+Em um teste manual, uma inscrição confirmada foi transferida por UPDATE para uma sessão lotada, ultrapassando o limite de vagas.
+
+A definição da trigger foi corrigida para:
+
+`BEFORE INSERT OR UPDATE OF status, id_sessao, id_pessoa`
+
+Após a correção, o teste manual de alteração de `id_sessao` foi repetido e apresentou o resultado:
+
+**TESTE APROVADO: transferencia de sessao bloqueada**
+
+O teste 19 foi acrescentado ao arquivo `tests/test_triggers.sql` para verificar:
+
+- Rejeição de alteração de `id_sessao`.
+- Rejeição de alteração de `id_pessoa`.
+- Preservação da inscrição original após as tentativas rejeitadas.
+- Descarte dos dados temporários por `ROLLBACK`.
+
+**Situação:** a alteração de sessão já foi validada manualmente. A execução integral do teste 19, incluindo a alteração de pessoa, ainda precisa ser confirmada.
+
+---
 
 ## 8. Testes de concorrência
 
@@ -283,18 +324,52 @@ A operação que atingiu o timeout foi repetida após o `COMMIT`, não permanece
 
 **Limpeza:** a inscrição temporária e a sessão 26 foram removidas após a verificação.
 
+### Testes complementares realizados
+
+**1. Reativação conflitante de sessão cancelada**
+
+Foi testada a tentativa de reativar uma sessão cancelada quando outra sessão ativa ocupava o mesmo espaço e horário.
+
+**Resultado:** TESTE APROVADO — reativação conflitante bloqueada.
+
+**2. Cancelamento de inscrição na lista de espera**
+
+Foi cancelada uma inscrição que estava na lista de espera, verificando que nenhuma outra inscrição fosse promovida indevidamente e que a inscrição confirmada permanecesse inalterada.
+
+**Resultado:** TESTE APROVADO — cancelamento na espera sem promoção indevida.
+
+**3. Inscrição direta em sessão sem inscrição geral na edição**
+
+Foi criada uma inscrição diretamente em uma sessão sem registro prévio na tabela `inscricao_edicao`.
+
+**Resultado:** TESTE APROVADO — inscrição em sessão sem inscrição na edição.
+
+**4. Transferência de inscrição por UPDATE**
+
+Inicialmente, o teste identificou que a alteração de `id_sessao` poderia ultrapassar o limite de vagas.
+
+Após a correção da trigger, a transferência foi rejeitada.
+
+**Resultado após correção:** TESTE APROVADO — transferência de sessão bloqueada.
+
+Todos esses testes utilizaram transações com `ROLLBACK` para evitar a permanência de dados temporários.
+
 ### Testes ainda pendentes
 
-Os 18 testes funcionais e os três cenários de concorrência executados apresentaram os resultados esperados.
+As verificações originais de 01 a 18 e os três cenários de concorrência executados apresentaram os resultados esperados.
 
-Ainda resta revisar os casos especiais e as limitações conhecidas da implementação. A análise de possíveis deadlocks foi realizada por inspeção do código e está documentada na seção 9, mas não houve teste específico para reproduzir ou descartar sua ocorrência.
+O teste 19 foi acrescentado ao arquivo de testes, mas sua execução integral ainda precisa ser confirmada.
+
+Também permanece pendente uma avaliação específica para reproduzir ou descartar possíveis deadlocks entre operações concorrentes.
+
+---
 
 ## 9. Decisões e limitações
 
 - A capacidade física do espaço é sempre considerada no cálculo das vagas.
 - O limite da sessão pode ser NULL, indicando ausência de limite próprio, mas não capacidade física ilimitada.
 - A lista de espera utiliza posições positivas e únicas por sessão.
-- A transferência de uma inscrição para outra pessoa ou sessão não é uma operação suportada pela regra implementada; porém, a proteção atual não cobre atualizações que alterem somente as chaves.
+- A transferência de uma inscrição para outra pessoa ou sessão por UPDATE não é suportada; a trigger atualizada bloqueia alterações de `id_sessao` e `id_pessoa`.
 - A promoção automática ocorre em cancelamentos por UPDATE. Exclusões físicas por DELETE não acionam essa regra.
 - A reativação de sessões canceladas é submetida à verificação de conflitos de horário.
 - A redução de capacidade é protegida pelas duas triggers adicionais.
@@ -314,21 +389,25 @@ Os testes realizados confirmaram a existência dos bloqueios e os comportamentos
 
 ### Outras limitações conhecidas
 
-- A trigger de controle de vagas não é acionada por atualizações que modifiquem exclusivamente `id_pessoa` ou `id_sessao`.
-- A promoção da lista de espera ocorre somente após o cancelamento de uma inscrição confirmada por meio de `UPDATE` do status.
+- A trigger de controle de vagas também é acionada por atualizações que modifiquem exclusivamente `id_pessoa` ou `id_sessao`, bloqueando essas transferências.
+- A promoção da lista de espera ocorre somente após o cancelamento de uma inscrição confirmada por meio de UPDATE do status.
 - Exclusões físicas de inscrições não acionam a promoção automática.
 - A implementação atual não realiza uma promoção automática apenas pelo aumento do limite de vagas.
 - Os testes de concorrência executados não substituem uma avaliação completa de todas as possíveis interações simultâneas entre as tabelas.
+
+---
 
 ## 10. Conclusão
 
 As seis funções de trigger implementam controles de integridade para o gerenciamento de sessões, inscrições, lista de espera, histórico e capacidade.
 
-Os 18 testes funcionais e os três cenários de concorrência executados apresentaram os resultados esperados, conforme os procedimentos registrados.
+As verificações originais de 01 a 18 e os três cenários de concorrência apresentaram os resultados esperados, conforme os procedimentos registrados.
 
 A revisão do código também identificou limitações conhecidas e um possível risco de deadlock relacionado à ordem dos bloqueios, documentados para consideração na integração com o restante do sistema.
 
-A validação final deve considerar os casos especiais ainda não testados e os requisitos definidos para a entrega do projeto.
+Os testes manuais adicionais confirmaram a rejeição de reativação conflitante, o cancelamento na lista de espera sem promoção indevida, a inscrição direta em sessão sem inscrição prévia na edição e o bloqueio de transferência de sessão após a correção.
+
+O teste 19 automatiza a verificação das duas chaves de inscrição e ainda deve ser executado integralmente.
 
 **Arquivos relacionados:**
 
