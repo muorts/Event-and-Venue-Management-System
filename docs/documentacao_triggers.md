@@ -177,7 +177,6 @@ Após a conclusão da primeira transação, a operação foi repetida e pôde pr
 Ainda devem ser verificados e registrados:
 
 - Possíveis situações de deadlock.
-- Redução de capacidade durante operações concorrentes de inscrição.
 
 ### Testes adicionais de capacidade
 
@@ -252,9 +251,36 @@ Ainda devem ser verificados e registrados:
 
 **Limpeza:** a sessão temporária 23 foi excluída após o teste.
 
+### Teste de concorrência — inscrição e redução de vagas
+
+**Banco utilizado:** `scc0640_teste_marcela`  
+**Sessão de teste:** 26  
+**Limite inicial:** 2 vagas
+
+**Procedimento:**
+
+1. Na conexão 1, foi iniciada uma transação e realizada a inscrição da pessoa 14, com status `CONFIRMADA`.
+2. A transação permaneceu aberta.
+3. Na conexão 2, foi realizada uma tentativa de reduzir `vagas_limite` de 2 para 1.
+4. A operação aguardou o bloqueio e atingiu o timeout de 5 segundos (`SQLSTATE 55P03`).
+5. Foi executado `COMMIT` na conexão 1.
+6. Na conexão 2, foi executado `ROLLBACK` para encerrar a transação abortada.
+7. A redução de 2 para 1 vaga foi repetida e permitida.
+8. Uma nova tentativa de reduzir o limite de 1 para 0 vagas foi rejeitada pela função `fn_impedir_reducao_vagas()` (`SQLSTATE P0001`).
+9. Uma consulta confirmou que a sessão permaneceu com 1 vaga e 1 inscrição confirmada.
+
+**Resultado:** APROVADO.
+
+**Conclusão:** o teste demonstrou que a alteração do limite de vagas aguardou o bloqueio mantido pela transação de inscrição. Após a liberação, a trigger permitiu uma redução válida e rejeitou uma redução inferior à quantidade de participantes confirmados.
+
+A operação que atingiu o timeout foi repetida após o `COMMIT`, não permanecendo em espera contínua.
+
+**Limpeza:** a inscrição temporária e a sessão 26 foram removidas após a verificação.
+
 ### Testes ainda pendentes
 
-Os testes automatizados de redução de capacidade e limite de vagas foram aprovados. Ainda precisam ser verificados separadamente os cenários de concorrência entre transações PostgreSQL, além dos demais casos especiais ainda não cobertos pelo arquivo de testes.
+Os 18 testes funcionais e os três cenários de concorrência executados apresentaram os resultados esperados.
+Ainda resta analisar possíveis situações de deadlock e revisar os casos especiais e as limitações conhecidas da implementação antes da entrega final.
 
 ## 9. Decisões e limitações
 
