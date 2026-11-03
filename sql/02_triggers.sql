@@ -224,7 +224,13 @@ $function$;
 
 
 
-CREATE TRIGGER trg_controlar_vagas_sessao BEFORE INSERT OR UPDATE OF status ON inscricao_sessao FOR EACH ROW EXECUTE FUNCTION fn_controlar_vagas_sessao();
+
+CREATE TRIGGER trg_controlar_vagas_sessao
+BEFORE INSERT OR UPDATE OF status, id_sessao, id_pessoa
+ON inscricao_sessao
+FOR EACH ROW
+EXECUTE FUNCTION fn_controlar_vagas_sessao();
+
 
 
 CREATE TRIGGER trg_promover_lista_espera AFTER UPDATE OF status ON inscricao_sessao FOR EACH ROW WHEN (old.status::text = 'CONFIRMADA'::text AND new.status::text = 'CANCELADA'::text) EXECUTE FUNCTION fn_promover_lista_espera();
