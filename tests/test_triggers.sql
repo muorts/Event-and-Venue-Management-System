@@ -515,6 +515,210 @@ $testes$;
 
 ROLLBACK;
 
+-- =====================================================
+-- TESTE 17 - BLOQUEIO DE REDUCAO DA CAPACIDADE FISICA
+-- =====================================================
+-- Teste independente, com dados temporarios.
+-- Verifica se a capacidade fisica nao pode ficar
+-- abaixo da quantidade de inscritos confirmados.
+
+BEGIN;
+
+DO $teste17$
+DECLARE
+    v_espaco INTEGER;
+    v_evento INTEGER;
+    v_edicao INTEGER;
+    v_atividade INTEGER;
+    v_sessao INTEGER;
+    v_pessoa1 INTEGER;
+    v_pessoa2 INTEGER;
+    v_rejeitou BOOLEAN := FALSE;
+BEGIN
+    INSERT INTO espaco (nome, tipo, capacidade)
+    VALUES ('Sala teste capacidade', 'SALA', 30)
+    RETURNING id_espaco INTO v_espaco;
+
+    INSERT INTO evento (nome)
+    VALUES ('Evento teste capacidade')
+    RETURNING id_evento INTO v_evento;
+
+    INSERT INTO edicao (
+        id_evento, ano, data_inicio, data_fim,
+        cidade, status
+    )
+    VALUES (
+        v_evento, 2026,
+        DATE '2026-12-10',
+        DATE '2026-12-12',
+        'Ribeirao Preto', 'PLANEJADA'
+    )
+    RETURNING id_edicao INTO v_edicao;
+
+    INSERT INTO atividade (id_edicao, titulo, tipo)
+    VALUES (v_edicao, 'Atividade teste capacidade', 'PALESTRA')
+    RETURNING id_atividade INTO v_atividade;
+
+    INSERT INTO sessao (
+        id_atividade, id_espaco, data,
+        hora_inicio, hora_fim, vagas_limite, status
+    )
+    VALUES (
+        v_atividade, v_espaco,
+        DATE '2026-12-10',
+        TIME '14:00', TIME '15:00',
+        2, 'AGENDADA'
+    )
+    RETURNING id_sessao INTO v_sessao;
+
+    INSERT INTO pessoa (nome, email)
+    VALUES ('Pessoa teste capacidade 1',
+            'capacidade1_' || v_sessao || '@teste.local')
+    RETURNING id_pessoa INTO v_pessoa1;
+
+    INSERT INTO pessoa (nome, email)
+    VALUES ('Pessoa teste capacidade 2',
+            'capacidade2_' || v_sessao || '@teste.local')
+    RETURNING id_pessoa INTO v_pessoa2;
+
+    INSERT INTO inscricao_sessao (
+        id_sessao, id_pessoa, status
+    )
+    VALUES
+        (v_sessao, v_pessoa1, 'CONFIRMADA'),
+        (v_sessao, v_pessoa2, 'CONFIRMADA');
+
+    BEGIN
+        UPDATE espaco
+        SET capacidade = 1
+        WHERE id_espaco = v_espaco;
+
+    EXCEPTION WHEN raise_exception THEN
+        v_rejeitou := TRUE;
+    END;
+
+    IF NOT v_rejeitou THEN
+        RAISE EXCEPTION
+            'TESTE 17 FALHOU: reducao indevida permitida';
+    END IF;
+
+    RAISE NOTICE
+        'TESTE 17 APROVADO: reducao da capacidade fisica bloqueada';
+END;
+$teste17$;
+
+ROLLBACK;
+
+-- =====================================================
+-- TESTE 18 - BLOQUEIO DE REDUCAO DO LIMITE DE VAGAS
+-- =====================================================
+-- Verifica se uma sessao com 2 confirmados
+-- impede reduzir vagas_limite de 2 para 1.
+
+BEGIN;
+
+DO $teste18$
+DECLARE
+    v_evento INTEGER;
+    v_edicao INTEGER;
+    v_atividade INTEGER;
+    v_espaco INTEGER;
+    v_sessao INTEGER;
+    v_pessoa1 INTEGER;
+    v_pessoa2 INTEGER;
+    v_rejeitou BOOLEAN := FALSE;
+    v_limite INTEGER;
+BEGIN
+    INSERT INTO evento (nome)
+    VALUES ('Evento teste limite vagas')
+    RETURNING id_evento INTO v_evento;
+
+    INSERT INTO edicao (
+        id_evento, ano, data_inicio, data_fim,
+        cidade, status
+    )
+    VALUES (
+        v_evento, 2026,
+        DATE '2026-12-10',
+        DATE '2026-12-12',
+        'Ribeirao Preto', 'PLANEJADA'
+    )
+    RETURNING id_edicao INTO v_edicao;
+
+    INSERT INTO atividade (id_edicao, titulo, tipo)
+    VALUES (v_edicao, 'Atividade teste vagas', 'PALESTRA')
+    RETURNING id_atividade INTO v_atividade;
+
+    INSERT INTO espaco (nome, tipo, capacidade)
+    VALUES ('Sala teste limite vagas', 'SALA', 30)
+    RETURNING id_espaco INTO v_espaco;
+
+    INSERT INTO sessao (
+        id_atividade, id_espaco, data,
+        hora_inicio, hora_fim, vagas_limite, status
+    )
+    VALUES (
+        v_atividade, v_espaco,
+        DATE '2026-12-10',
+        TIME '14:00', TIME '15:00',
+        2, 'AGENDADA'
+    )
+    RETURNING id_sessao INTO v_sessao;
+
+    INSERT INTO pessoa (nome, email)
+    VALUES (
+        'Pessoa teste vagas 1',
+        'vagas1_' || v_sessao || '@teste.local'
+    )
+    RETURNING id_pessoa INTO v_pessoa1;
+
+    INSERT INTO pessoa (nome, email)
+    VALUES (
+        'Pessoa teste vagas 2',
+        'vagas2_' || v_sessao || '@teste.local'
+    )
+    RETURNING id_pessoa INTO v_pessoa2;
+
+    INSERT INTO inscricao_sessao (
+        id_sessao, id_pessoa, status
+    )
+    VALUES
+        (v_sessao, v_pessoa1, 'CONFIRMADA'),
+        (v_sessao, v_pessoa2, 'CONFIRMADA');
+
+    -- A reducao deve ser bloqueada.
+    BEGIN
+        UPDATE sessao
+        SET vagas_limite = 1
+        WHERE id_sessao = v_sessao;
+
+    EXCEPTION WHEN raise_exception THEN
+        v_rejeitou := TRUE;
+    END;
+
+    IF NOT v_rejeitou THEN
+        RAISE EXCEPTION
+            'TESTE 18 FALHOU: reducao de vagas permitida';
+    END IF;
+
+    -- Confirma que o limite original foi preservado.
+    SELECT vagas_limite
+    INTO v_limite
+    FROM sessao
+    WHERE id_sessao = v_sessao;
+
+    IF v_limite <> 2 THEN
+        RAISE EXCEPTION
+            'TESTE 18 FALHOU: limite original alterado';
+    END IF;
+
+    RAISE NOTICE
+        'TESTE 18 APROVADO: reducao do limite de vagas bloqueada';
+END;
+$teste18$;
+
+ROLLBACK;
+
 -- ============================================================
 -- FIM DOS TESTES
 --
@@ -525,7 +729,7 @@ ROLLBACK;
 -- Este arquivo nao comprova sozinho:
 -- - concorrencia entre duas inscricoes simultaneas;
 -- - concorrencia entre agendamentos simultaneos;
--- - reducao de capacidade com inscricoes existentes;
+-- - concorrencia durante reducao de capacidade;
 -- - reativacao de sessao cancelada;
 -- - cancelamento de pessoa na lista de espera;
 -- - alteracao das chaves de uma inscricao;
