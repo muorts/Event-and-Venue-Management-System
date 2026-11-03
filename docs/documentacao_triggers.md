@@ -31,7 +31,7 @@ Este documento descreve as seis funções de trigger implementadas em PostgreSQL
 
 A função utiliza `SELECT ... FOR UPDATE` na linha da sessão para serializar operações de inscrição concorrentes.
 
-Essa estratégia foi verificada em um cenário com duas conexões PostgreSQL, no qual a segunda operação aguardou o encerramento da transação que mantinha o bloqueio.
+Essa estratégia foi verificada em um cenário com duas conexões PostgreSQL, no qual a segunda operação encontrou o bloqueio mantido pela primeira transação e atingiu o tempo limite configurado.
 
 **Limitação:** a trigger é acionada em INSERT ou UPDATE de `status`. Alterações somente nas colunas de identificação não acionam essa verificação.
 
@@ -168,15 +168,19 @@ As duas triggers adicionais de proteção de capacidade foram verificadas pelos 
 
 Foi utilizado o PostgreSQL 17 por meio do pgAdmin, com duas conexões independentes identificadas por `pg_backend_pid()`.
 
-No cenário de inscrição concorrente, a primeira conexão manteve uma transação aberta após ocupar a última vaga de uma sessão. A segunda tentativa de inscrição encontrou o bloqueio da sessão e atingiu o tempo limite de espera configurado.
+Foram realizados três cenários de concorrência:
 
-Após a conclusão da primeira transação, a operação foi repetida e pôde prosseguir.
+1. Disputa pela última vaga de uma sessão.
+2. Tentativa de criação de agendamentos conflitantes.
+3. Inscrição simultânea à tentativa de redução do limite de vagas.
 
-**Interpretação:** o teste demonstrou a existência do bloqueio entre transações. Ele não comprova, isoladamente, todos os comportamentos de concorrência exigidos pelo projeto.
+Em todos os cenários, a primeira conexão manteve uma transação aberta enquanto a segunda tentava realizar uma operação relacionada aos mesmos dados.
 
-Ainda devem ser verificados e registrados:
+As operações da segunda conexão encontraram bloqueios e atingiram o tempo limite configurado de 5 segundos (`SQLSTATE 55P03`).
 
-- Possíveis situações de deadlock.
+Após o encerramento das primeiras transações, as operações foram repetidas para verificar o comportamento das regras de integridade.
+
+**Interpretação:** os testes demonstraram a existência de bloqueios entre transações e os resultados esperados após sua liberação. Entretanto, as operações que atingiram o timeout foram repetidas posteriormente, não permanecendo em espera contínua até o `COMMIT`.
 
 ### Testes adicionais de capacidade
 
@@ -201,29 +205,31 @@ Ainda devem ser verificados e registrados:
 
 ### Teste de concorrência — disputa pela última vaga
 
-**Banco utilizado:** scc0640_teste_marcela  
+**Banco utilizado:** `scc0640_teste_marcela`  
 **Sessão de teste:** 22  
 **Limite de vagas:** 1
 
 **Procedimento:**
 
 1. Na conexão 1, foi iniciada uma transação e realizada a inscrição da pessoa 14.
-2. A inscrição recebeu status CONFIRMADA.
+2. A inscrição recebeu status `CONFIRMADA`.
 3. A transação permaneceu aberta, mantendo o bloqueio da sessão.
 4. Na conexão 2, a pessoa 15 tentou se inscrever.
-5. A operação aguardou o bloqueio e atingiu o timeout de 5 segundos (SQLSTATE 55P03).
-6. Foi executado COMMIT na conexão 1.
-7. Na conexão 2, foi executado ROLLBACK para encerrar a transação abortada.
+5. A operação aguardou o bloqueio e atingiu o timeout de 5 segundos (`SQLSTATE 55P03`).
+6. Foi executado `COMMIT` na conexão 1.
+7. Na conexão 2, foi executado `ROLLBACK` para encerrar a transação abortada.
 8. A inscrição da pessoa 15 foi repetida com sucesso.
 
 **Resultado final:**
 
-- Pessoa 14: CONFIRMADA.
-- Pessoa 15: LISTA_ESPERA, posição 1.
+- Pessoa 14: `CONFIRMADA`.
+- Pessoa 15: `LISTA_ESPERA`, posição 1.
 - Total de confirmados: 1.
 - Capacidade da sessão respeitada.
 
-**Conclusão:** o teste confirmou o bloqueio entre conexões e o comportamento correto das inscrições após a liberação da transação. A segunda tentativa foi repetida após o timeout; portanto, não foi uma espera contínua até o COMMIT.
+**Resultado:** APROVADO.
+
+**Conclusão:** o teste confirmou o bloqueio entre conexões e o comportamento correto das inscrições após a liberação da transação. A segunda tentativa foi repetida após o timeout; portanto, não foi uma espera contínua até o `COMMIT`.
 
 **Limpeza:** as inscrições de teste e a sessão 22 foram removidas após a verificação.
 
@@ -280,7 +286,8 @@ A operação que atingiu o timeout foi repetida após o `COMMIT`, não permanece
 ### Testes ainda pendentes
 
 Os 18 testes funcionais e os três cenários de concorrência executados apresentaram os resultados esperados.
-Ainda resta analisar possíveis situações de deadlock e revisar os casos especiais e as limitações conhecidas da implementação antes da entrega final.
+
+Ainda resta revisar os casos especiais e as limitações conhecidas da implementação. A análise de possíveis deadlocks foi realizada por inspeção do código e está documentada na seção 9, mas não houve teste específico para reproduzir ou descartar sua ocorrência.
 
 ## 9. Decisões e limitações
 
@@ -293,11 +300,35 @@ Ainda resta analisar possíveis situações de deadlock e revisar os casos espec
 - A redução de capacidade é protegida pelas duas triggers adicionais.
 - Os mecanismos de bloqueio precisam ser considerados em operações concorrentes para evitar esperas excessivas e possíveis deadlocks.
 
+### Análise de possíveis deadlocks
+
+As funções utilizam bloqueios de linhas para coordenar operações concorrentes. O controle de inscrições bloqueia a sessão, enquanto a verificação de conflitos de horários bloqueia o espaço.
+
+Em operações que envolvem múltiplas tabelas, diferentes ordens de aquisição de bloqueios podem gerar situações de espera circular entre transações.
+
+Os testes realizados confirmaram a existência dos bloqueios e os comportamentos esperados após a liberação das transações. Entretanto, não foi executado um teste específico que comprovasse ou descartasse a ocorrência de deadlocks.
+
+**Limitação conhecida:** recomenda-se padronizar a ordem de aquisição dos bloqueios nas operações que envolvem sessões, espaços e inscrições, além de prever o tratamento de erros de deadlock (`SQLSTATE 40P01`) pela aplicação.
+
+**Conclusão:** o risco foi identificado por análise do código, mas sua ocorrência prática não foi demonstrada nos testes realizados.
+
+### Outras limitações conhecidas
+
+- A trigger de controle de vagas não é acionada por atualizações que modifiquem exclusivamente `id_pessoa` ou `id_sessao`.
+- A promoção da lista de espera ocorre somente após o cancelamento de uma inscrição confirmada por meio de `UPDATE` do status.
+- Exclusões físicas de inscrições não acionam a promoção automática.
+- A implementação atual não realiza uma promoção automática apenas pelo aumento do limite de vagas.
+- Os testes de concorrência executados não substituem uma avaliação completa de todas as possíveis interações simultâneas entre as tabelas.
+
 ## 10. Conclusão
 
 As seis funções de trigger implementam controles de integridade para o gerenciamento de sessões, inscrições, lista de espera, histórico e capacidade.
 
-Os testes funcionais realizados demonstraram o comportamento esperado nos cenários aprovados. A validação final depende da execução e documentação dos casos adicionais de concorrência e das regras especiais ainda pendentes.
+Os 18 testes funcionais e os três cenários de concorrência executados apresentaram os resultados esperados, conforme os procedimentos registrados.
+
+A revisão do código também identificou limitações conhecidas e um possível risco de deadlock relacionado à ordem dos bloqueios, documentados para consideração na integração com o restante do sistema.
+
+A validação final deve considerar os casos especiais ainda não testados e os requisitos definidos para a entrega do projeto.
 
 **Arquivos relacionados:**
 
