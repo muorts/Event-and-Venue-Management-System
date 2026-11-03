@@ -104,7 +104,7 @@ O campo `motivo` é preenchido com NULL porque a implementação atual não rece
 
 A função bloqueia a linha do espaço com `FOR UPDATE`, buscando impedir que transações concorrentes confirmem agendamentos conflitantes sem sincronização.
 
-O teste simultâneo de criação de sessões conflitantes ainda deve ser documentado separadamente.
+O teste de concorrência entre agendamentos conflitantes foi realizado com duas conexões PostgreSQL. O bloqueio e a rejeição do conflito foram confirmados, conforme descrito na seção 8.
 
 ## 5. Proteção contra redução indevida de vagas
 
@@ -176,7 +176,6 @@ Após a conclusão da primeira transação, a operação foi repetida e pôde pr
 
 Ainda devem ser verificados e registrados:
 
-- Dois agendamentos simultâneos conflitantes.
 - Possíveis situações de deadlock.
 - Redução de capacidade durante operações concorrentes de inscrição.
 
@@ -228,6 +227,30 @@ Ainda devem ser verificados e registrados:
 **Conclusão:** o teste confirmou o bloqueio entre conexões e o comportamento correto das inscrições após a liberação da transação. A segunda tentativa foi repetida após o timeout; portanto, não foi uma espera contínua até o COMMIT.
 
 **Limpeza:** as inscrições de teste e a sessão 22 foram removidas após a verificação.
+
+### Teste de concorrência — agendamentos conflitantes
+
+**Banco utilizado:** `scc0640_teste_marcela`  
+**Espaço utilizado:** 2 — Sala Conflito  
+**Sessão de teste:** 23  
+**Data:** 15/12/2026
+
+**Procedimento:**
+
+1. Na conexão 1, foi iniciada uma transação e criada a sessão 23, das 14:00 às 15:00.
+2. A primeira transação permaneceu aberta, mantendo o bloqueio do espaço 2.
+3. Na conexão 2, foi realizada uma tentativa de criar outra sessão no mesmo espaço, das 14:30 às 15:30.
+4. A segunda operação aguardou o bloqueio e atingiu o timeout de 5 segundos (`SQLSTATE 55P03`).
+5. Foi executado `COMMIT` na conexão 1.
+6. Na conexão 2, foi executado `ROLLBACK` para encerrar a transação abortada.
+7. A tentativa de criar a sessão conflitante foi repetida.
+8. O PostgreSQL rejeitou a operação com a mensagem: `Conflito de horário: já existe uma sessão nesse espaço.` (`SQLSTATE P0001`).
+
+**Resultado:** APROVADO.
+
+**Conclusão:** o teste confirmou o bloqueio entre conexões e a rejeição do agendamento conflitante após a confirmação da primeira transação. A segunda tentativa foi repetida após o timeout, não permanecendo em espera contínua até o `COMMIT`.
+
+**Limpeza:** a sessão temporária 23 foi excluída após o teste.
 
 ### Testes ainda pendentes
 
