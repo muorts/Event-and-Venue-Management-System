@@ -34,7 +34,7 @@ NUM_CONSULTAS = 5
 MAX_LINHAS_EXIBIDAS = 50   # linhas mostradas por resultado
 MAX_LARGURA_COLUNA = 40    # caracteres por celula antes de truncar
 TIMEOUT_CONSULTA = "30s"   # statement_timeout de cada consulta
-NUM_CTX = 4096             # janela de contexto do Ollama (maior = mais RAM)
+NUM_CTX = 6144             # janela de contexto do Ollama (maior = mais RAM; prompt ~3.4k tokens)
 KEEP_ALIVE = "2m"          # tempo que o modelo fica carregado na memoria apos usar
 
 
@@ -356,7 +356,15 @@ def montar_prompt_sistema(esquema):
         "- espaco: sala/auditorio/laboratorio; recurso: equipamento (projetor etc.).\n"
         "- pessoa: cadastro unico; seus papeis estao em inscricao_edicao, inscricao_sessao,\n"
         "  equipe_edicao (organizador/voluntario) e atividade_pessoa (palestrante/instrutor/mediador).\n"
-        "- Status ficam em MAIUSCULAS (ex.: 'CONFIRMADA'); papeis em minusculas.\n\n"
+        "- Status ficam em MAIUSCULAS (ex.: 'CONFIRMADA'); papeis em minusculas.\n"
+        "- So filtre por status (de sessao, edicao ou inscricao) se a pergunta pedir.\n\n"
+        "REGRAS DE VAGAS E OCUPACAO:\n"
+        "- Vagas efetivas de uma sessao = LEAST(COALESCE(sessao.vagas_limite, espaco.capacidade),\n"
+        "  espaco.capacidade); vagas_limite NULL significa sem limite proprio.\n"
+        "- Ocupacao = numero de inscricao_sessao com status 'CONFIRMADA' na sessao\n"
+        "  (LISTA_ESPERA e CANCELADA nao ocupam vaga).\n"
+        "- Sessao lotada: ocupacao >= vagas efetivas (use GROUP BY ... HAVING).\n"
+        "- Lista de espera: inscricao_sessao com status 'LISTA_ESPERA', ordenada por posicao_espera.\n\n"
         "ESQUEMA DO BANCO:\n"
         f"{esquema}"
     )
