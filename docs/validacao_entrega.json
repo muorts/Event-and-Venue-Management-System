@@ -1,0 +1,831 @@
+{
+  "testes": [
+    {
+      "teste": "oito artefatos finais, sem arquivos estranhos",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "prototipo contem somente os tres arquivos exigidos",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "configuracao distribuivel nao usa senha real",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "DML entregue identico a fonte de Lucas",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "XML E/R preserva fonte editavel",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "fonte Mermaid entregue preservado",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "comando de extracao das instrucoes reproduz o DDL usado pelo prototipo",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "parser le exatamente as cinco consultas do Projeto.txt",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "Q1 final em uma linha",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "Q2 final em uma linha",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "Q3 final em uma linha",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "Q4 final em uma linha",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "Q5 final em uma linha",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "Q6 final em uma linha",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "Projeto.txt sem placeholders",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "consulta 1 identica a fonte de Lucas",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "consulta 2 identica a fonte de Lucas",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "consulta 3 identica a fonte de Lucas",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "consulta 4 identica a fonte de Lucas",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "consulta 5 identica a fonte de Lucas",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "125 testes originais do DDL em base separada",
+      "aprovado": true,
+      "detalhe": 125
+    },
+    {
+      "teste": "DDL extraido cria 16 tabelas",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "treze triggers finais instalados (seis originais e sete de integracao)",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "carga contem 30 pessoas sinteticas",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "historico da sessao 13 gerado por triggers",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "cancelamento do DML promove a pessoa correta",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "Q5 aceita espera sem inscricao geral",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "consulta 1 executada pelo prototipo",
+      "aprovado": true,
+      "detalhe": 19
+    },
+    {
+      "teste": "consulta 2 executada pelo prototipo",
+      "aprovado": true,
+      "detalhe": 19
+    },
+    {
+      "teste": "consulta 3 executada pelo prototipo",
+      "aprovado": true,
+      "detalhe": 11
+    },
+    {
+      "teste": "consulta 4 executada pelo prototipo",
+      "aprovado": true,
+      "detalhe": 12
+    },
+    {
+      "teste": "consulta 5 executada pelo prototipo",
+      "aprovado": true,
+      "detalhe": 10
+    },
+    {
+      "teste": "consulta valida apos erro SQL funciona",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "READ ONLY bloqueia escrita e recupera conexao",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "resultado vazio tem mensagem clara",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "CLI extraida executa as cinco opcoes a partir de outra pasta",
+      "aprovado": true,
+      "detalhe": ""
+    },
+    {
+      "teste": "Projeto.txt ausente encerra com erro conforme PDF",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "testes funcionais 02 a 18 de Marcela aprovados",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "corrida inscricao versus reducao da sala corrigida",
+      "aprovado": true,
+      "detalhe": {
+        "aguardou_sem_retry": true,
+        "wait_event": [
+          "Lock",
+          "advisory"
+        ],
+        "resultado": "P0001"
+      }
+    },
+    {
+      "teste": "capacidade final comporta todas as confirmacoes",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "duas conexoes disputam ultima vaga sem retry",
+      "aprovado": true,
+      "detalhe": {
+        "aguardou_sem_retry": true,
+        "wait_event": [
+          "Lock",
+          "advisory"
+        ],
+        "resultado": "COMMIT"
+      }
+    },
+    {
+      "teste": "segunda inscricao concorrente entra na espera",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "agendamentos concorrentes conflitantes rejeitados sem retry",
+      "aprovado": true,
+      "detalhe": {
+        "aguardou_sem_retry": true,
+        "wait_event": [
+          "Lock",
+          "advisory"
+        ],
+        "resultado": "P0001"
+      }
+    },
+    {
+      "teste": "reducao concorrente de limite rejeitada apos novas inscricoes",
+      "aprovado": true,
+      "detalhe": {
+        "aguardou_sem_retry": true,
+        "wait_event": [
+          "Lock",
+          "advisory"
+        ],
+        "resultado": "P0001"
+      }
+    },
+    {
+      "teste": "status invalido nao e convertido silenciosamente",
+      "aprovado": true,
+      "detalhe": "23514"
+    },
+    {
+      "teste": "status NULL nao e convertido silenciosamente",
+      "aprovado": true,
+      "detalhe": "23502"
+    },
+    {
+      "teste": "edicao nao pode perder seu ultimo promotor",
+      "aprovado": true,
+      "detalhe": "23514"
+    },
+    {
+      "teste": "evento sem edicao rejeitado no COMMIT",
+      "aprovado": true,
+      "detalhe": "23514"
+    },
+    {
+      "teste": "edicao sem promotor rejeitada no COMMIT",
+      "aprovado": true,
+      "detalhe": "23514"
+    },
+    {
+      "teste": "evento nao pode perder sua ultima edicao",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "remocao completa do conjunto nao gera falso orfao",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "cancelamento da espera nao promove nem remove confirmacao",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "reativacao revalida conflito com sessao nova",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "Ollama real gera consulta unica de leitura",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "resultado do Ollama real confere com banco",
+      "aprovado": true,
+      "detalhe": {
+        "pergunta": "Quantas pessoas estao cadastradas? Retorne uma unica coluna total com COUNT(*).",
+        "sql": "SELECT COUNT(*) AS total FROM pessoa",
+        "linhas": [
+          [
+            30
+          ]
+        ]
+      }
+    },
+    {
+      "teste": "Ollama real gera consulta unica de leitura",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "resultado do Ollama real confere com banco",
+      "aprovado": true,
+      "detalhe": {
+        "pergunta": "Liste somente id_atividade e titulo das atividades do tipo workshop, ordenadas por id_atividade.",
+        "sql": "SELECT id_atividade, titulo\nFROM atividade\nWHERE tipo ILIKE '%workshop%'\nORDER BY id_atividade",
+        "linhas": [
+          [
+            1,
+            "Workshop de PostgreSQL"
+          ],
+          [
+            6,
+            "Workshop de PostgreSQL"
+          ],
+          [
+            12,
+            "Workshop de Docker para Desenvolvedores"
+          ],
+          [
+            15,
+            "Workshop de Otimizacao de Consultas"
+          ]
+        ]
+      }
+    },
+    {
+      "teste": "Ollama real gera consulta unica de leitura",
+      "aprovado": true,
+      "detalhe": null
+    },
+    {
+      "teste": "resultado do Ollama real confere com banco",
+      "aprovado": true,
+      "detalhe": {
+        "pergunta": "Liste somente o id_sessao e o nome do espaco de cada sessao, ordenados por id_sessao.",
+        "sql": "SELECT id_sessao, (SELECT nome FROM espaco WHERE id_espaco = sessao.id_espaco) AS nome_espaco\nFROM sessao\nORDER BY id_sessao",
+        "linhas": [
+          [
+            1,
+            "Auditorio Central"
+          ],
+          [
+            2,
+            "Laboratorio 1"
+          ],
+          [
+            3,
+            "Laboratorio 1"
+          ],
+          [
+            4,
+            "Laboratorio 2"
+          ],
+          [
+            5,
+            "Sala A"
+          ],
+          [
+            6,
+            "Sala B"
+          ],
+          [
+            7,
+            "Auditorio Central"
+          ],
+          [
+            8,
+            "Laboratorio 1"
+          ],
+          [
+            9,
+            "Laboratorio 2"
+          ],
+          [
+            10,
+            "Sala A"
+          ],
+          [
+            11,
+            "Sala A"
+          ],
+          [
+            12,
+            "Sala B"
+          ],
+          [
+            13,
+            "Sala B"
+          ],
+          [
+            14,
+            "Area de Exposicao"
+          ],
+          [
+            15,
+            "Laboratorio 1"
+          ],
+          [
+            16,
+            "Auditorio Central"
+          ],
+          [
+            17,
+            "Laboratorio 1"
+          ],
+          [
+            18,
+            "Laboratorio 2"
+          ],
+          [
+            19,
+            "Auditorio Central"
+          ]
+        ]
+      }
+    },
+    {
+      "teste": "CLI extraida completa caminho pergunta-Ollama-banco-resultado",
+      "aprovado": true,
+      "detalhe": ""
+    },
+    {
+      "teste": "CLI permanece utilizavel apos pergunta complexa, inclusive se o modelo errar",
+      "aprovado": true,
+      "detalhe": ""
+    }
+  ],
+  "postgresql": "PostgreSQL 18.6 on x86_64-windows, compiled by msvc-19.44.35229, 64-bit",
+  "triggers": [
+    [
+      "ct_edicao_com_promotor"
+    ],
+    [
+      "ct_edicao_preserva_evento"
+    ],
+    [
+      "ct_evento_com_edicao"
+    ],
+    [
+      "ct_promotor_preserva_edicao"
+    ],
+    [
+      "trg_controlar_vagas_sessao"
+    ],
+    [
+      "trg_impedir_reducao_vagas"
+    ],
+    [
+      "trg_promover_lista_espera"
+    ],
+    [
+      "trg_registrar_historico_sessao"
+    ],
+    [
+      "trg_serializar_capacidade"
+    ],
+    [
+      "trg_serializar_inscricoes"
+    ],
+    [
+      "trg_serializar_programacao"
+    ],
+    [
+      "trg_validar_capacidade_espaco"
+    ],
+    [
+      "trg_verificar_conflito_sessao"
+    ]
+  ],
+  "query_counts": [
+    19,
+    19,
+    11,
+    12,
+    10
+  ],
+  "ollama_version": "0.40.14",
+  "modelo": "qwen3:8b",
+  "aprovado": true,
+  "quantidade_testes": 61,
+  "pacote_sha256": "fa7c9a9689d06452160b924732147ce35a282e5f47f3172c079ac92b7b604e67",
+  "python": "3.12.14",
+  "ollama_perguntas": [
+    {
+      "pergunta": "Quantas pessoas estao cadastradas? Retorne uma unica coluna total com COUNT(*).",
+      "sql": "SELECT COUNT(*) AS total FROM pessoa",
+      "linhas": [
+        [
+          30
+        ]
+      ],
+      "esperado": [
+        [
+          30
+        ]
+      ],
+      "correto": true,
+      "obrigatoria": true,
+      "erro_final": null,
+      "tentativas": [
+        {
+          "sql": "SELECT COUNT(*) AS total FROM pessoa",
+          "resultado": "executado"
+        }
+      ],
+      "segundos": 145.5
+    },
+    {
+      "pergunta": "Liste somente id_atividade e titulo das atividades do tipo workshop, ordenadas por id_atividade.",
+      "sql": "SELECT id_atividade, titulo\nFROM atividade\nWHERE tipo ILIKE '%workshop%'\nORDER BY id_atividade",
+      "linhas": [
+        [
+          1,
+          "Workshop de PostgreSQL"
+        ],
+        [
+          6,
+          "Workshop de PostgreSQL"
+        ],
+        [
+          12,
+          "Workshop de Docker para Desenvolvedores"
+        ],
+        [
+          15,
+          "Workshop de Otimizacao de Consultas"
+        ]
+      ],
+      "esperado": [
+        [
+          1,
+          "Workshop de PostgreSQL"
+        ],
+        [
+          6,
+          "Workshop de PostgreSQL"
+        ],
+        [
+          12,
+          "Workshop de Docker para Desenvolvedores"
+        ],
+        [
+          15,
+          "Workshop de Otimizacao de Consultas"
+        ]
+      ],
+      "correto": true,
+      "obrigatoria": true,
+      "erro_final": null,
+      "tentativas": [
+        {
+          "sql": "SELECT id_atividade, titulo\nFROM atividade\nWHERE tipo ILIKE '%workshop%'\nORDER BY id_atividade",
+          "resultado": "executado"
+        }
+      ],
+      "segundos": 10.56
+    },
+    {
+      "pergunta": "Liste somente o id_sessao e o nome do espaco de cada sessao, ordenados por id_sessao.",
+      "sql": "SELECT id_sessao, (SELECT nome FROM espaco WHERE id_espaco = sessao.id_espaco) AS nome_espaco\nFROM sessao\nORDER BY id_sessao",
+      "linhas": [
+        [
+          1,
+          "Auditorio Central"
+        ],
+        [
+          2,
+          "Laboratorio 1"
+        ],
+        [
+          3,
+          "Laboratorio 1"
+        ],
+        [
+          4,
+          "Laboratorio 2"
+        ],
+        [
+          5,
+          "Sala A"
+        ],
+        [
+          6,
+          "Sala B"
+        ],
+        [
+          7,
+          "Auditorio Central"
+        ],
+        [
+          8,
+          "Laboratorio 1"
+        ],
+        [
+          9,
+          "Laboratorio 2"
+        ],
+        [
+          10,
+          "Sala A"
+        ],
+        [
+          11,
+          "Sala A"
+        ],
+        [
+          12,
+          "Sala B"
+        ],
+        [
+          13,
+          "Sala B"
+        ],
+        [
+          14,
+          "Area de Exposicao"
+        ],
+        [
+          15,
+          "Laboratorio 1"
+        ],
+        [
+          16,
+          "Auditorio Central"
+        ],
+        [
+          17,
+          "Laboratorio 1"
+        ],
+        [
+          18,
+          "Laboratorio 2"
+        ],
+        [
+          19,
+          "Auditorio Central"
+        ]
+      ],
+      "esperado": [
+        [
+          1,
+          "Auditorio Central"
+        ],
+        [
+          2,
+          "Laboratorio 1"
+        ],
+        [
+          3,
+          "Laboratorio 1"
+        ],
+        [
+          4,
+          "Laboratorio 2"
+        ],
+        [
+          5,
+          "Sala A"
+        ],
+        [
+          6,
+          "Sala B"
+        ],
+        [
+          7,
+          "Auditorio Central"
+        ],
+        [
+          8,
+          "Laboratorio 1"
+        ],
+        [
+          9,
+          "Laboratorio 2"
+        ],
+        [
+          10,
+          "Sala A"
+        ],
+        [
+          11,
+          "Sala A"
+        ],
+        [
+          12,
+          "Sala B"
+        ],
+        [
+          13,
+          "Sala B"
+        ],
+        [
+          14,
+          "Area de Exposicao"
+        ],
+        [
+          15,
+          "Laboratorio 1"
+        ],
+        [
+          16,
+          "Auditorio Central"
+        ],
+        [
+          17,
+          "Laboratorio 1"
+        ],
+        [
+          18,
+          "Laboratorio 2"
+        ],
+        [
+          19,
+          "Auditorio Central"
+        ]
+      ],
+      "correto": true,
+      "obrigatoria": true,
+      "erro_final": null,
+      "tentativas": [
+        {
+          "sql": "SELECT id_sessao, (SELECT nome FROM espaco WHERE id_espaco = sessao.id_espaco) AS nome_espaco\nFROM sessao\nORDER BY id_sessao",
+          "resultado": "executado"
+        }
+      ],
+      "segundos": 13.12
+    },
+    {
+      "pergunta": "Quais sessoes estao lotadas? Retorne somente id_sessao em ordem crescente.",
+      "sql": "WITH vagas_efetivas AS (\n  SELECT \n    s.id_sessao,\n    LEAST(COALESCE(s.vagas_limite, e.capacidade), e.capacidade) AS vagas_efetivas\n  FROM \n    sessao s\n  JOIN \n    espaco e ON s.id_espaco = e.id_espaco\n)\nSELECT \n  i.id_sessao\nFROM \n  inscricao_sessao i\nJOIN \n  vagas_efetivas v ON i.id_sessao = v.id_sessao\nGROUP BY \n  i.id_sessao\nHAVING \n  COUNT(DISTINCT CASE WHEN i.status = 'CONFIRMADA' THEN i.id_pessoa END) >= v.vagas_efetivas\nORDER BY \n  i.id_sessao",
+      "linhas": null,
+      "esperado": [
+        [
+          8
+        ],
+        [
+          9
+        ],
+        [
+          18
+        ]
+      ],
+      "correto": false,
+      "obrigatoria": false,
+      "erro_final": "column \"v.vagas_efetivas\" must appear in the GROUP BY clause or be used in an aggregate function\nLINE 19: ... i.status = 'CONFIRMADA' THEN i.id_pessoa END) >= v.vagas_ef...\n                                                              ^",
+      "tentativas": [
+        {
+          "sql": "WITH vagas_efetivas AS (\n  SELECT \n    s.id_sessao,\n    LEAST(COALESCE(s.vagas_limite, e.espaco.capacidade), e.espaco.capacidade) AS vagas_efetivas\n  FROM \n    sessao s\n  JOIN \n    espaco e.espaco ON s.id_espaco = e.espaco.id_espaco\n)\nSELECT \n  i.id_sessao\nFROM \n  inscricao_sessao i\nJOIN \n  vagas_efetivas v ON i.id_sessao = v.id_sessao\nGROUP BY \n  i.id_sessao\nHAVING \n  COUNT(DISTINCT CASE WHEN i.status = 'CONFIRMADA' THEN i.id_pessoa END) >= v.vagas_efetivas\nORDER BY \n  i.id_sessao",
+          "erro_postgresql": "syntax error at or near \".\"\nLINE 8:     espaco e.espaco ON s.id_espaco = e.espaco.id_espaco\n                    ^"
+        },
+        {
+          "sql": "WITH vagas_efetivas AS (\n  SELECT \n    s.id_sessao,\n    LEAST(COALESCE(s.vagas_limite, e.capacidade), e.capacidade) AS vagas_efetivas\n  FROM \n    sessao s\n  JOIN \n    espaco e ON s.id_espaco = e.id_espaco\n)\nSELECT \n  i.id_sessao\nFROM \n  inscricao_sessao i\nJOIN \n  vagas_efetivas v ON i.id_sessao = v.id_sessao\nGROUP BY \n  i.id_sessao\nHAVING \n  COUNT(DISTINCT CASE WHEN i.status = 'CONFIRMADA' THEN i.id_pessoa END) >= v.vagas_efetivas\nORDER BY \n  i.id_sessao",
+          "erro_postgresql": "column \"v.vagas_efetivas\" must appear in the GROUP BY clause or be used in an aggregate function\nLINE 19: ... i.status = 'CONFIRMADA' THEN i.id_pessoa END) >= v.vagas_ef...\n                                                              ^"
+        }
+      ],
+      "segundos": 99.5
+    }
+  ],
+  "ollama_limitacoes": [
+    {
+      "pergunta": "Quais sessoes estao lotadas? Retorne somente id_sessao em ordem crescente.",
+      "sql": "WITH vagas_efetivas AS (\n  SELECT \n    s.id_sessao,\n    LEAST(COALESCE(s.vagas_limite, e.capacidade), e.capacidade) AS vagas_efetivas\n  FROM \n    sessao s\n  JOIN \n    espaco e ON s.id_espaco = e.id_espaco\n)\nSELECT \n  i.id_sessao\nFROM \n  inscricao_sessao i\nJOIN \n  vagas_efetivas v ON i.id_sessao = v.id_sessao\nGROUP BY \n  i.id_sessao\nHAVING \n  COUNT(DISTINCT CASE WHEN i.status = 'CONFIRMADA' THEN i.id_pessoa END) >= v.vagas_efetivas\nORDER BY \n  i.id_sessao",
+      "linhas": null,
+      "esperado": [
+        [
+          8
+        ],
+        [
+          9
+        ],
+        [
+          18
+        ]
+      ],
+      "correto": false,
+      "obrigatoria": false,
+      "erro_final": "column \"v.vagas_efetivas\" must appear in the GROUP BY clause or be used in an aggregate function\nLINE 19: ... i.status = 'CONFIRMADA' THEN i.id_pessoa END) >= v.vagas_ef...\n                                                              ^",
+      "tentativas": [
+        {
+          "sql": "WITH vagas_efetivas AS (\n  SELECT \n    s.id_sessao,\n    LEAST(COALESCE(s.vagas_limite, e.espaco.capacidade), e.espaco.capacidade) AS vagas_efetivas\n  FROM \n    sessao s\n  JOIN \n    espaco e.espaco ON s.id_espaco = e.espaco.id_espaco\n)\nSELECT \n  i.id_sessao\nFROM \n  inscricao_sessao i\nJOIN \n  vagas_efetivas v ON i.id_sessao = v.id_sessao\nGROUP BY \n  i.id_sessao\nHAVING \n  COUNT(DISTINCT CASE WHEN i.status = 'CONFIRMADA' THEN i.id_pessoa END) >= v.vagas_efetivas\nORDER BY \n  i.id_sessao",
+          "erro_postgresql": "syntax error at or near \".\"\nLINE 8:     espaco e.espaco ON s.id_espaco = e.espaco.id_espaco\n                    ^"
+        },
+        {
+          "sql": "WITH vagas_efetivas AS (\n  SELECT \n    s.id_sessao,\n    LEAST(COALESCE(s.vagas_limite, e.capacidade), e.capacidade) AS vagas_efetivas\n  FROM \n    sessao s\n  JOIN \n    espaco e ON s.id_espaco = e.id_espaco\n)\nSELECT \n  i.id_sessao\nFROM \n  inscricao_sessao i\nJOIN \n  vagas_efetivas v ON i.id_sessao = v.id_sessao\nGROUP BY \n  i.id_sessao\nHAVING \n  COUNT(DISTINCT CASE WHEN i.status = 'CONFIRMADA' THEN i.id_pessoa END) >= v.vagas_efetivas\nORDER BY \n  i.id_sessao",
+          "erro_postgresql": "column \"v.vagas_efetivas\" must appear in the GROUP BY clause or be used in an aggregate function\nLINE 19: ... i.status = 'CONFIRMADA' THEN i.id_pessoa END) >= v.vagas_ef...\n                                                              ^"
+        }
+      ],
+      "segundos": 99.5
+    }
+  ],
+  "cli_pergunta_complexa": "erro_apresentado",
+  "ollama_testado": true,
+  "data_validacao": "2026-11-03",
+  "fontes_sha256_normalizado": {
+    "sql/01_tabelas.sql": "5702cf76ad8a75b027ad0730890ef5dc3246430c0fcbf930341d9ef9edadaa0c",
+    "sql/02_triggers.sql": "e61d27d10e1ede0861d1e7e35964dd1791630b7186894f7783e0481fa6bd6549",
+    "sql/03_dml.sql": "ef398c58aae6a0ee9e62b2c9e0761594c9db6f432ad6b22887930e33b13c8f32",
+    "sql/04_consultas.sql": "a4554b94fc5ef63263c6852c10925a5ade2e1e03faf6970f51c19559bfc3a9ff",
+    "prototipo/main.py": "1551343128e0b10a811b70633377bc8439e154b188beabca3de0dc37a996ef89",
+    "prototipo/requirements.txt": "8a54b69fa0f6be91f893b6bcc5d02555f835bd743b076d30247e60537de47b28"
+  },
+  "artefatos": [
+    "ProjetoBD/ER.pdf",
+    "ProjetoBD/ER.xml",
+    "ProjetoBD/Relacional.pdf",
+    "ProjetoBD/Relacional.mmd",
+    "ProjetoBD/Projeto.txt",
+    "ProjetoBD/DML.sql",
+    "ProjetoBD/Prototipo.zip",
+    "ProjetoBD/Instrucoes.txt"
+  ]
+}

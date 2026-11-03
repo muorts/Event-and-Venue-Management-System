@@ -1,84 +1,61 @@
 # Event-and-Venue-Management-System
 
-Projeto de Bases de Dados SCC0640 (USP), sistema de gestão de eventos e espaços.
-Entrega informada pelo grupo: **03/11/2026**.
+Sistema de Gestão de Eventos e Espaços — Semana da Computação.
+Projeto SCC0640, USP. Entrega: **03/11/2026**.
 
-## Integrantes e responsabilidades
+## Integrantes
 
 | Integrante | Responsabilidade |
 | --- | --- |
-| Victor | DDL, integração e entrega final |
-| Marcela | Triggers |
-| João Marcelo | Protótipo Python/Ollama e modelo relacional em Mermaid |
-| Waldrighi | DML e consultas SQL |
-| Murilo | Documentação, diagramas E/R e instruções |
+| Victor Kayky Zaneti Antunes | DDL, integração e entrega |
+| Marcela Caprioli Alves | Funções e triggers |
+| João Marcelo Abreu dos Santos | Protótipo Python/Ollama e relacional Mermaid |
+| Lucas Waldrighi Lima | DML e cinco consultas SQL |
+| Murilo Ortega Pereira | Documentação, E/R e instruções |
 
-## Fonte principal
+## Fontes e execução
 
-O repositório GitHub é a fonte principal do projeto. O ZIP do Drive e o plano de
-execução são materiais de apoio: não substituem os arquivos ou as decisões
-versionadas e não foram incorporados a esta reorganização.
-
-## Estado desta etapa
-
-Reorganização aprovada e integrada. O DDL de Victor em `sql/01_tabelas.sql` cria
-as 16 tabelas oficiais; as seis decisões estão aprovadas.
-Veja o [contrato das tabelas e testes](docs/ddl.md) para executar o DDL, integrar
-os próximos componentes e consultar os resultados/limitações da validação.
-`prototipo/main.py` e `entrega/Instrucoes.txt` continuam vazios; triggers, DML,
-consultas e protótipo serão implementados pelos respectivos responsáveis.
-
-## Organização
+GitHub é a fonte principal. As seis decisões estão aprovadas em
+[docs/decisoes.md](docs/decisoes.md). O contrato das 16 tabelas, 16 PKs e 19 FKs
+está em [docs/ddl.md](docs/ddl.md).
 
 ```text
-docs/modelagem/    E/R principal e modelo relacional existente
-docs/decisoes.md   decisões confirmadas e questões ainda pendentes
-docs/legado/       marcadores vazios antigos de preparação da entrega
-sql/              scripts-fonte canônicos, na ordem 01 a 04
-prototipo/        fontes do protótipo de linha de comando
-tests/            reservado para verificações futuras
-entrega/          somente artefatos finais derivados das fontes
+sql/01_tabelas.sql       tabelas, restrições e índices
+sql/02_triggers.sql      funções e triggers
+sql/03_dml.sql           carga sintética de Lucas
+sql/04_consultas.sql     cinco consultas e objetivos de Lucas
+prototipo/              CLI Python, requirements e configuração LOCAL ignorada
+docs/modelagem/         E/R e Mermaid com fontes e PDFs
+scripts/                geração reproduzível da entrega
+tests/                  baseline do DDL, triggers e teste do pacote
+entrega/                oito artefatos finais derivados
 ```
 
-Estrutura-alvo dos scripts: `sql/01_tabelas.sql`, `sql/02_triggers.sql`,
-`sql/03_dml.sql`, `sql/04_consultas.sql`. O primeiro está implementado; os demais
-serão entregues pelos responsáveis.
-Não manter scripts paralelos por entidade.
+Tecnologias: PostgreSQL, Python 3.11+ e Ollama local. Modelo de integração:
+`qwen3:8b`. Não versionar senhas reais nem ambientes virtuais.
 
-## Tecnologias e requisitos obrigatórios
+## Preparar a entrega
 
-PostgreSQL, Python **3.11 ou superior** e Ollama **local**. A implementação futura
-deverá conter pelo menos quatro triggers de finalidades distintas, cinco consultas
-SQL relevantes e protótipo de linha de comando. As instruções de Python exigem
-`ollama` e `psycopg[binary]` em `requirements.txt`, execução por `python main.py`,
-configuração relativa ao arquivo e `Projeto.txt` no diretório pai do protótipo.
-O modelo deve vir da configuração; o grupo ainda precisa confirmar o modelo utilizado.
+```sh
+python scripts/preparar_entrega.py --zip-final SCC0640_Semana_da_Computacao_2026.zip
+```
 
-## Pendências (arquivos ausentes não foram fabricados)
+O script lê exclusivamente as fontes e gera Projeto.txt completo, DML.sql,
+Prototipo.zip com configuração fictícia, PDFs/fontes e Instrucoes.txt.
+Não editar essas cópias manualmente: corrigir a fonte e gerar novamente.
 
-- `docs/modelagem/ER.pdf` e exportação XML de entrega do draw.io.
-- `docs/modelagem/Relacional.mmd`: recuperar o fonte Mermaid com João Marcelo.
-- Criar os scripts `02_triggers.sql`, `03_dml.sql` e `04_consultas.sql`.
-- Implementar `prototipo/main.py`; criar `prototipo/requirements.txt` e configuração local `prototipo/config.json`.
-- Completar as regras entre linhas/tabelas e a participação mínima dos pais conforme [ddl.md](docs/ddl.md).
-- Completar instruções e gerar os artefatos finais de `entrega/` após a implementação.
+No pacote, extrair Prototipo.zip dentro de ProjetoBD, mantendo Projeto.txt no
+diretório pai de Prototipo/main.py. O programa lê tanto o DDL quanto as cinco
+consultas desse Projeto.txt; não depende da pasta sql/ na entrega.
+Seguir [entrega/Instrucoes.txt](entrega/Instrucoes.txt) para instalação e execução.
 
-## Preparação da entrega futura
+## Validação e limites
 
-O enunciado pede ER.pdf + XML draw.io, Relacional.pdf + fonte Mermaid,
-Projeto.txt fiel ao template, DML.sql, Prototipo.zip e Instrucoes.txt, reunidos
-em um único arquivo compactado. Não gerar esses produtos nesta etapa.
-Projeto.txt deverá reunir o DDL de `01_tabelas.sql` e `02_triggers.sql`, além das
-consultas de `04_consultas.sql`; DML.sql deverá derivar de `03_dml.sql`.
-Os arquivos em `entrega/` não devem ser editados como uma segunda fonte.
+O baseline do DDL passou em 125 verificações no PostgreSQL 18.6 nativo.
+O ensaio final usa uma base vazia e o pacote extraído, incluindo testes concorrentes
+e, com --testar-ollama, inferência local real.
 
-O pacote deverá acomodar `Projeto.txt` imediatamente acima de `Prototipo/`,
-conforme o PDF de Python; o diretório-fonte solicitado pelo grupo é `prototipo/`.
-O enunciado alterna `Instrucoes.txt` e `06.Instrucoes.txt` e não completa o nome
-do arquivo compactado final: confirmar essas ambiguidades antes de empacotar.
-
-`prototipo/config.json` está ignorado no Git para impedir registro de senhas reais.
-A configuração distribuível, ainda pendente, deverá usar valores fictícios e
-ser incluída no pacote final respeitando o formato exigido.
-
-Veja [AGENTS.md](AGENTS.md) e [decisões e observações](docs/decisoes.md).
+Detalhes e correções: [docs/integracao-final.md](docs/integracao-final.md).
+Resultados: [docs/validacao_entrega.json](docs/validacao_entrega.json).
+As limitações restantes estão nas instruções, sem declarar como concluído o que
+não foi validado. O material de apoio do Drive não substitui as fontes do GitHub.

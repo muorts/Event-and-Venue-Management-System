@@ -38,12 +38,12 @@ o usuário confirmou as seis decisões abaixo e autorizou o DDL.
 
 ## Pendências e inconsistências
 
-- Ausentes ER.pdf, exportação XML de entrega e fonte Relacional.mmd; o draw.io já é XML editável,
-  mas a exportação com formato/nome de entrega ainda não foi preparada.
-- DDL das 16 tabelas implementado em `sql/01_tabelas.sql`; testes e limites em `ddl.md`.
-  Triggers, DML, consultas e protótipo continuam sob responsabilidade dos outros integrantes.
-- O fonte Mermaid ausente impede auditar automaticamente as cardinalidades do relacional.
-  Não declarar a consistência completa entre diagramas sem revisão visual e recuperação do fonte.
+- ER.pdf e XML E/R foram disponibilizados por Murilo; João forneceu Relacional.mmd e PDF.
+  Os quatro artefatos correspondentes são gerados em entrega/ a partir dessas fontes.
+- DDL, triggers, DML, consultas e protótipo integrados. Evidências finais em
+  `validacao_entrega.json`; fontes e correções em `integracao-final.md`.
+- O fonte Mermaid de João foi confrontado com as 16 tabelas e os diagramas;
+  PDFs finais foram renderizados e inspecionados, sem alteração de entidades/cardinalidades.
 - O PDF relacional especifica `HISTORICO_SESSAO.espaco_anterior` como `varchar`.
   Preservar os identificadores e atributos do modelo do GitHub; dúvidas serão
   documentadas em `ddl.md`, sem mudança de atributos.
@@ -51,7 +51,7 @@ o usuário confirmou as seis decisões abaixo e autorizou o DDL.
   garantir `Projeto.txt` no diretório pai, inclusive ao descompactar Prototipo.zip.
 - O enunciado lista `Instrucoes.txt`, mas o parágrafo seguinte diz `06.Instrucoes.txt`;
   a frase sobre o nome do arquivo compactado final está incompleta. Confirmar na entrega.
-- O exemplo de configuração cita `qwen3:8b`; isso não confirma a escolha do grupo.
+- O modelo local adotado na integração é `qwen3:8b`, usado por João e configurado no pacote final.
 - As tabelas e alterações do PDF de treinamento são exemplos independentes, não mudanças para este modelo.
 
 ## Entrega futura sem fontes divergentes
@@ -73,3 +73,11 @@ Q6: A sessão guarda a programação atual e mudanças de data, horário ou espa
 As propostas anteriores do material de apoio não acrescentam regras a estas decisões.
 Não exigir vínculo em `inscricao_edicao` como pré-requisito de `inscricao_sessao`.
 O contrato técnico e as limitações das cardinalidades mínimas estão em [ddl.md](ddl.md).
+
+## Contrato final de execucao
+
+O main.py le DDL e as cinco consultas do Projeto.txt, localizado no diretorio pai
+de Prototipo. sql/04_consultas.sql e a fonte de desenvolvimento de Lucas. O
+empacotador consolida os derivados, sem depender da pasta sql/ na entrega.
+NULL em vagas_limite significa ausencia de limite proprio, mantendo a capacidade
+fisica no controle de inscricoes, como implementado por Marcela e Lucas.
