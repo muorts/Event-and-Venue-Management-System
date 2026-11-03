@@ -162,7 +162,7 @@ Na execução realizada no pgAdmin, os testes funcionais numerados de 02 a 16 ap
 
 Os testes utilizam transações com `ROLLBACK` para desfazer as alterações realizadas durante a verificação.
 
-As duas triggers adicionais de proteção de capacidade foram implementadas e precisam ter seus resultados específicos registrados na documentação de testes.
+As duas triggers adicionais de proteção de capacidade foram verificadas pelos testes automatizados 17 e 18, ambos aprovados no pgAdmin.
 
 ## 8. Testes de concorrência
 
@@ -179,7 +179,32 @@ Ainda devem ser verificados e registrados:
 - Duas inscrições simultâneas disputando a última vaga, com resultado final conferido.
 - Dois agendamentos simultâneos conflitantes.
 - Possíveis situações de deadlock.
-- Redução de capacidade com inscrições existentes.
+- - Redução de capacidade durante operações concorrentes de inscrição.
+
+### Testes adicionais de capacidade
+
+**Teste 17 — Redução da capacidade física do espaço**
+
+- Trigger testada: `trg_validar_capacidade_espaco`.
+- Cenário: espaço com capacidade 30 e sessão com 2 inscrições confirmadas.
+- Operação: tentativa de reduzir a capacidade física para 1.
+- Resultado esperado: a alteração deve ser bloqueada.
+- Resultado obtido: TESTE 17 APROVADO.
+- Os dados temporários são desfeitos com `ROLLBACK`.
+
+**Teste 18 — Redução do limite de vagas da sessão**
+
+- Trigger testada: `trg_impedir_reducao_vagas`.
+- Cenário: sessão com limite de 2 vagas e 2 inscrições confirmadas.
+- Operação: tentativa de reduzir `vagas_limite` para 1.
+- Resultado esperado: a alteração deve ser bloqueada.
+- Resultado obtido: TESTE 18 APROVADO.
+- O teste também verifica se `vagas_limite` permanece igual a 2.
+- Os dados temporários são desfeitos com `ROLLBACK`.
+
+### Testes ainda pendentes
+
+Os testes automatizados de redução de capacidade e limite de vagas foram aprovados. Ainda precisam ser verificados separadamente os cenários de concorrência entre transações PostgreSQL, além dos demais casos especiais ainda não cobertos pelo arquivo de testes.
 
 ## 9. Decisões e limitações
 
